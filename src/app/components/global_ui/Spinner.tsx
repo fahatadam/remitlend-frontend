@@ -1,7 +1,7 @@
 import { FC } from "react";
 
 interface SpinnerProps {
-  type: "spin" | "bounce" | "double Spinner";
+  type: "spin" | "bounce" | "double-spinner";
   color?: string;
   size?: number;
   duration?: number;
@@ -30,7 +30,7 @@ export const Spinner: FC<SpinnerProps> = ({
         className="animate-spin rounded-full inline-block box-border"
       />
     );
-  } else if (type === "double Spinner") {
+  } else if (type === "double-spinner") {
     return (
       <div className="relative inline-block">
         {/* Outer Spinner */}
