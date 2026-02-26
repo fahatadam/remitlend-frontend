@@ -26,7 +26,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <GoodChild />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
 
     expect(screen.getByText("Everything is fine")).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <ProblemChild />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
 
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
@@ -58,7 +58,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <ConditionalChild />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
 
     // Fallback should be showing
@@ -77,13 +77,13 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <ProblemChild />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
 
     expect(console.error).toHaveBeenCalledWith(
       "ErrorBoundary caught an error:",
       expect.any(Error),
-      expect.objectContaining({ componentStack: expect.any(String) })
+      expect.objectContaining({ componentStack: expect.any(String) }),
     );
   });
 });
