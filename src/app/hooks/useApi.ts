@@ -136,15 +136,20 @@ export function useLoan(
 /**
  * Creates a new loan application.
  * Automatically invalidates the loans list cache on success.
+ * Returns mutation with txHash in the response for toast integration.
  */
 export function useCreateLoan(
-  options?: UseMutationOptions<Loan, Error, Omit<Loan, "id" | "createdAt" | "status">>,
+  options?: UseMutationOptions<
+    Loan & { txHash?: string },
+    Error,
+    Omit<Loan, "id" | "createdAt" | "status">
+  >,
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<Loan, Error, Omit<Loan, "id" | "createdAt" | "status">>({
+  return useMutation<Loan & { txHash?: string }, Error, Omit<Loan, "id" | "createdAt" | "status">>({
     mutationFn: (data) =>
-      apiFetch<Loan>("/loans", {
+      apiFetch<Loan & { txHash?: string }>("/loans", {
         method: "POST",
         body: JSON.stringify(data),
       }),
@@ -189,15 +194,24 @@ export function useRemittance(
 /**
  * Creates a new remittance.
  * Invalidates the remittances list cache on success.
+ * Returns mutation with txHash in the response for toast integration.
  */
 export function useCreateRemittance(
-  options?: UseMutationOptions<Remittance, Error, Omit<Remittance, "id" | "createdAt" | "status">>,
+  options?: UseMutationOptions<
+    Remittance & { txHash?: string },
+    Error,
+    Omit<Remittance, "id" | "createdAt" | "status">
+  >,
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation<Remittance, Error, Omit<Remittance, "id" | "createdAt" | "status">>({
+  return useMutation<
+    Remittance & { txHash?: string },
+    Error,
+    Omit<Remittance, "id" | "createdAt" | "status">
+  >({
     mutationFn: (data) =>
-      apiFetch<Remittance>("/remittances", {
+      apiFetch<Remittance & { txHash?: string }>("/remittances", {
         method: "POST",
         body: JSON.stringify(data),
       }),
