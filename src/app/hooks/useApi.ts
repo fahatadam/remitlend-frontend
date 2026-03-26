@@ -48,6 +48,10 @@ export const queryKeys = {
   borrowerLoans: {
     byAddress: (address: string) => ["borrowerLoans", address] as const,
   },
+  pool: {
+    stats: () => ["pool", "stats"] as const,
+    depositor: (address: string) => ["pool", "depositor", address] as const,
+  },
 } as const;
 
 // ─── Base fetch helper ────────────────────────────────────────────────────────
@@ -143,6 +147,43 @@ export interface BorrowerLoan {
   approvedAt?: string;
 }
 
+export interface LoanEvent {
+  type: string;
+  amount: string | number;
+  timestamp: string;
+  txHash?: string;
+}
+
+export interface LoanDetails {
+  loanId: number;
+  principal: number;
+  accruedInterest: number;
+  totalRepaid: number;
+  totalOwed: number;
+  interestRate: number;
+  status: "active" | "repaid" | "defaulted" | "pending";
+  requestedAt?: string;
+  approvedAt?: string;
+  events: LoanEvent[];
+}
+
+export interface PoolStats {
+  totalDeposits: number;
+  totalOutstanding: number;
+  utilizationRate: number;
+  apy: number;
+  activeLoansCount: number;
+}
+
+export interface DepositorPortfolio {
+  address: string;
+  depositAmount: number;
+  sharePercent: number;
+  estimatedYield: number;
+  apy: number;
+  firstDepositAt: string | null;
+}
+
 export interface LoanStats {
   totalActive: number;
   totalOwed: number;
@@ -170,11 +211,24 @@ export function useLoans(options?: Omit<UseQueryOptions<Loan[]>, "queryKey" | "q
  */
 export function useLoan(
   id: string | undefined,
-  options?: Omit<UseQueryOptions<Loan>, "queryKey" | "queryFn">,
+  options?: Omit<UseQueryOptions<LoanDetails>, "queryKey" | "queryFn">,
 ) {
-  return useQuery<Loan>({
+  return useQuery<LoanDetails>({
     queryKey: queryKeys.loans.detail(id ?? ""),
-    queryFn: () => apiFetch<Loan>(`/loans/${id}`),
+    queryFn: async () => {
+      const response = await apiFetch<LoanDetails | { success: boolean; data: LoanDetails }>(
+        `/loans/${id}`,
+      );
+      if (
+        typeof response === "object" &&
+        response !== null &&
+        "success" in response &&
+        "data" in response
+      ) {
+        return response.data;
+      }
+      return response;
+    },
     enabled: !!id,
     ...options,
   });
@@ -338,6 +392,11 @@ interface BorrowerLoansApiResponse {
   data: { borrower: string; loans: BorrowerLoan[]; totalLoans: number };
 }
 
+interface PoolApiResponse<T> {
+  success: boolean;
+  data: T;
+}
+
 /**
  * Fetches all loans for a borrower address.
  * Results are cached by address so multiple components sharing the same
@@ -372,6 +431,34 @@ export function useBorrowerLoans(borrowerAddress: string | undefined) {
   };
 
   return { ...query, loans, stats };
+}
+
+export function usePoolStats(options?: Omit<UseQueryOptions<PoolStats>, "queryKey" | "queryFn">) {
+  return useQuery<PoolStats>({
+    queryKey: queryKeys.pool.stats(),
+    queryFn: async () => {
+      const response = await apiFetch<PoolApiResponse<PoolStats>>("/pool/stats");
+      return response.data;
+    },
+    ...options,
+  });
+}
+
+export function useDepositorPortfolio(
+  address: string | undefined,
+  options?: Omit<UseQueryOptions<DepositorPortfolio>, "queryKey" | "queryFn">,
+) {
+  return useQuery<DepositorPortfolio>({
+    queryKey: queryKeys.pool.depositor(address ?? ""),
+    queryFn: async () => {
+      const response = await apiFetch<PoolApiResponse<DepositorPortfolio>>(
+        `/pool/depositor/${address}`,
+      );
+      return response.data;
+    },
+    enabled: !!address,
+    ...options,
+  });
 }
 
 // ─── Notification types & hooks ───────────────────────────────────────────────
