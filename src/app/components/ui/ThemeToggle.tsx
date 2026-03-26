@@ -68,6 +68,7 @@ export function ThemeToggle() {
       onClick={cycle}
       className="p-2 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-900 rounded-lg transition-colors"
       aria-label={`${label} — click to change`}
+      aria-live="polite"
       title={label}
     >
       <Icon className="h-5 w-5" />
