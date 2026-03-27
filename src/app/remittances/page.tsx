@@ -13,7 +13,11 @@ import {
   Calendar,
   DollarSign,
 } from "lucide-react";
-import { useWalletStore, selectIsWalletConnected, selectWalletAddress } from "../stores/useWalletStore";
+import {
+  useWalletStore,
+  selectIsWalletConnected,
+  selectWalletAddress,
+} from "../stores/useWalletStore";
 import { useRemittances, type Remittance } from "../hooks/useApi";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/Card";
 import { ErrorBoundary } from "../components/global_ui/ErrorBoundary";
@@ -114,6 +118,7 @@ function ConnectWalletPrompt() {
 export default function RemittancesPage() {
   const isConnected = useWalletStore(selectIsWalletConnected);
   const address = useWalletStore(selectWalletAddress);
+  const [renderTimestamp] = useState(() => Date.now());
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -150,19 +155,18 @@ export default function RemittancesPage() {
     const completed = remittances.filter((r) => r.status === "completed");
     const totalRemitted = completed.reduce((sum, r) => sum + r.amount, 0);
     const avgAmount = completed.length > 0 ? totalRemitted / completed.length : 0;
-    const months = completed.length > 0
+    const oldestCompletedAt = completed[completed.length - 1]?.createdAt;
+    const months = oldestCompletedAt
       ? Math.max(
           1,
           Math.ceil(
-            (new Date().getTime() -
-              new Date(completed[completed.length - 1]?.createdAt ?? Date.now()).getTime()) /
-              (1000 * 60 * 60 * 24 * 30),
+            (renderTimestamp - new Date(oldestCompletedAt).getTime()) / (1000 * 60 * 60 * 24 * 30),
           ),
         )
       : 1;
     const frequency = completed.length / months;
     return { totalRemitted, avgAmount, count: completed.length, frequency };
-  }, [remittances]);
+  }, [remittances, renderTimestamp]);
 
   const isFiltered =
     statusFilter !== "all" || !!searchQuery || !!dateFrom || !!dateTo || !!minAmount || !!maxAmount;
