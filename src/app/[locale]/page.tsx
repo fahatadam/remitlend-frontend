@@ -1,30 +1,21 @@
 "use client";
 
 import {
-  ArrowUpRight,
-  ArrowDownLeft,
-  Users,
-  Activity,
-  Clock,
-  ExternalLink,
-  WalletCards,
-} from "lucide-react";
-import {
   useWalletStore,
   selectIsWalletConnected,
   selectWalletAddress,
   type WalletStore,
-} from "../../stores/useWalletStore";
+} from "../stores/useWalletStore"; // Changed to ../
 import {
   useLoans,
   useRemittances,
   useUserBalance,
   useUserProfile,
   useCreditScoreHistory,
-} from "../../hooks/useApi";
-import { DashboardSkeleton } from "../../components/skeletons/DashboardSkeleton";
-import { CreditScoreGauge } from "../../components/ui/CreditScoreGauge";
-import { ErrorBoundary } from "../../components/global_ui/ErrorBoundary";
+} from "../hooks/useApi"; // Changed to ../
+import { DashboardSkeleton } from "../components/skeletons/DashboardSkeleton"; // Changed to ../
+import { CreditScoreGauge } from "../components/ui/CreditScoreGauge"; // Changed to ../
+import { ErrorBoundary } from "../components/global_ui/ErrorBoundary"; // Changed to ../
 import React, { useMemo } from "react";
 
 function formatCurrency(value: number): string {
