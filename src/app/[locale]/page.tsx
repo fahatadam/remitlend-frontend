@@ -138,7 +138,10 @@ export default function Home() {
 
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 opacity-50 grayscale-[0.5]">
           {["Net Worth", "Active Loans", "Total Remitted", "Yield (APY)"].map((label, i) => (
-            <div key={i} className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+            <div
+              key={i}
+              className="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+            >
               <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{label}</p>
               <h3 className="text-2xl font-bold text-zinc-300 dark:text-zinc-700">$0.00</h3>
             </div>
@@ -149,9 +152,12 @@ export default function Home() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 mb-6">
             <WalletCards className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">Wallet Not Connected</h2>
+          <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
+            Wallet Not Connected
+          </h2>
           <p className="mt-2 text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
-            Connect your wallet to analyze your on-chain credit score, manage active positions, and track cross-border remittances.
+            Connect your wallet to analyze your on-chain credit score, manage active positions, and
+            track cross-border remittances.
           </p>
           <button
             onClick={() => {
@@ -231,10 +237,11 @@ export default function Home() {
                   </div>
                   {stat.change && (
                     <span
-                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${stat.trend === "up"
+                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        stat.trend === "up"
                           ? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
                           : "bg-zinc-50 text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400"
-                        }`}
+                      }`}
                       aria-label={`Change: ${stat.change}`}
                     >
                       {stat.change}
@@ -242,8 +249,12 @@ export default function Home() {
                   )}
                 </div>
                 <div className="mt-4">
-                  <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{stat.label}</p>
-                  <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{stat.value}</h3>
+                  <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                    {stat.label}
+                  </p>
+                  <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                    {stat.value}
+                  </h3>
                 </div>
               </article>
             );
@@ -284,10 +295,11 @@ export default function Home() {
                     >
                       <div className="flex items-center gap-4">
                         <div
-                          className={`h-10 w-10 rounded-full flex items-center justify-center ${item.status === "completed" || item.status === "repaid"
+                          className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                            item.status === "completed" || item.status === "repaid"
                               ? "bg-green-50 dark:bg-green-500/10"
                               : "bg-indigo-50 dark:bg-indigo-500/10"
-                            }`}
+                          }`}
                           aria-hidden="true"
                         >
                           {item.amount.startsWith("+") ? (
