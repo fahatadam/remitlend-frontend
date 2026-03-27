@@ -16,6 +16,9 @@ import { Skeleton } from "../components/ui/Skeleton";
 import { YieldEarningsChart } from "../components/charts/YieldEarningsChart";
 import { useDepositorPortfolio, useLoans, usePoolStats, useYieldHistory } from "../hooks/useApi";
 import { LoanStatusBadge } from "../components/ui/LoanStatusBadge";
+import { DepositWithdrawSkeleton } from "../components/skeletons/DepositWithdrawSkeleton";
+import { OperationProgress } from "../components/ui/OperationProgress";
+import { useDepositOperation, useWithdrawalOperation } from "../hooks/useRepaymentOperation";
 import { selectWalletAddress, useWalletStore } from "../stores/useWalletStore";
 
 function formatCurrency(value: number) {
@@ -30,6 +33,21 @@ export default function LendPage() {
   const [depositAmount, setDepositAmount] = useState("100");
   const [withdrawAmount, setWithdrawAmount] = useState("50");
   const address = useWalletStore(selectWalletAddress);
+
+  const depositOp = useDepositOperation();
+  const withdrawalOp = useWithdrawalOperation();
+
+  const handleDeposit = async () => {
+    const amount = parseFloat(depositAmount);
+    if (!address || isNaN(amount) || amount <= 0) return;
+    await depositOp.executeDeposit({ amount, depositorAddress: address });
+  };
+
+  const handleWithdraw = async () => {
+    const amount = parseFloat(withdrawAmount);
+    if (!address || isNaN(amount) || amount <= 0) return;
+    await withdrawalOp.executeWithdrawal({ amount, depositorAddress: address });
+  };
 
   const {
     data: poolStats,
@@ -185,65 +203,82 @@ export default function LendPage() {
             </div>
           </article>
 
-          <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm shadow-zinc-200/50 dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-none">
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-              Deposit / Withdraw
-            </h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <form className="space-y-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
-                <label
-                  htmlFor="deposit-amount"
-                  className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          {isLoading ? (
+            <DepositWithdrawSkeleton />
+          ) : (
+            <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm shadow-zinc-200/50 dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-none">
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+                Deposit / Withdraw
+              </h2>
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <form
+                  className="space-y-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleDeposit();
+                  }}
                 >
-                  Deposit Amount
-                </label>
-                <input
-                  id="deposit-amount"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={depositAmount}
-                  onChange={(event) => setDepositAmount(event.target.value)}
-                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-zinc-800 dark:bg-zinc-900"
-                />
-                <button
-                  type="button"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500"
-                >
-                  <ArrowUpRight className="h-4 w-4" />
-                  Deposit
-                </button>
-              </form>
+                  <label
+                    htmlFor="deposit-amount"
+                    className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Deposit Amount
+                  </label>
+                  <input
+                    id="deposit-amount"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={depositAmount}
+                    onChange={(event) => setDepositAmount(event.target.value)}
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-zinc-800 dark:bg-zinc-900"
+                  />
+                  <button
+                    type="submit"
+                    disabled={depositOp.isLoading}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <ArrowUpRight className="h-4 w-4" />
+                    {depositOp.isLoading ? "Depositing..." : "Deposit"}
+                  </button>
+                  <OperationProgress transaction={depositOp.transaction} type="deposit" />
+                </form>
 
-              <form className="space-y-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
-                <label
-                  htmlFor="withdraw-amount"
-                  className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                <form
+                  className="space-y-3 rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleWithdraw();
+                  }}
                 >
-                  Withdraw Amount
-                </label>
-                <input
-                  id="withdraw-amount"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={withdrawAmount}
-                  onChange={(event) => setWithdrawAmount(event.target.value)}
-                  className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-zinc-800 dark:bg-zinc-900"
-                />
-                <button
-                  type="button"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                >
-                  <ArrowDownLeft className="h-4 w-4" />
-                  Withdraw
-                </button>
-              </form>
-            </div>
-            <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
-              Contract integration can be wired into these form actions.
-            </p>
-          </article>
+                  <label
+                    htmlFor="withdraw-amount"
+                    className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Withdraw Amount
+                  </label>
+                  <input
+                    id="withdraw-amount"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={withdrawAmount}
+                    onChange={(event) => setWithdrawAmount(event.target.value)}
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-indigo-500 dark:border-zinc-800 dark:bg-zinc-900"
+                  />
+                  <button
+                    type="submit"
+                    disabled={withdrawalOp.isLoading}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                  >
+                    <ArrowDownLeft className="h-4 w-4" />
+                    {withdrawalOp.isLoading ? "Withdrawing..." : "Withdraw"}
+                  </button>
+                  <OperationProgress transaction={withdrawalOp.transaction} type="withdrawal" />
+                </form>
+              </div>
+            </article>
+          )}
         </section>
       </ErrorBoundary>
 
