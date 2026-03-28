@@ -17,6 +17,7 @@ import { useWalletStore } from "../../stores/useWalletStore";
 import { useUserStore } from "../../stores/useUserStore";
 import { useGamificationStore } from "../../stores/useGamificationStore";
 import { useLoans, useRemittances } from "../../hooks/useApi";
+import { useContractToast } from "../../hooks/useContractToast";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslations, useLocale } from "next-intl";
 
@@ -47,6 +48,7 @@ export function Header({ onMenuClick, className }: HeaderProps) {
   const disconnect = useWalletStore((state) => state.disconnect);
   const user = useUserStore((state) => state.user);
   const gamificationStore = useGamificationStore();
+  const toast = useContractToast();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -219,9 +221,11 @@ export function Header({ onMenuClick, className }: HeaderProps) {
   const handleWalletToggle = () => {
     if (isConnected) {
       disconnect();
+      toast.info("Wallet disconnected", "Reconnect anytime to continue borrowing and lending.");
     } else {
       setConnected("0x123...abc", { chainId: 1, name: "Stellar", isSupported: true });
       gamificationStore.addXP(10, "Wallet connection");
+      toast.success("Wallet connected");
     }
   };
 

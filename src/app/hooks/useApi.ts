@@ -33,6 +33,7 @@ export const queryKeys = {
   loans: {
     all: () => ["loans"] as const,
     detail: (id: string) => ["loans", id] as const,
+    config: () => ["loans", "config"] as const,
   },
   remittances: {
     all: () => ["remittances"] as const,
@@ -126,6 +127,19 @@ export interface CreditScoreHistory {
   date: string;
   score: number;
   event?: string;
+}
+
+export interface CreditScoreResponse {
+  success: boolean;
+  userId: string;
+  score: number;
+  band: string;
+}
+
+export interface LoanConfig {
+  minScore: number;
+  maxAmount: number;
+  interestRatePercent: number;
 }
 
 export interface YieldHistory {
@@ -230,6 +244,22 @@ export function useLoan(
       return response;
     },
     enabled: !!id,
+    ...options,
+  });
+}
+
+/**
+ * Fetches loan manager configuration used for borrower eligibility checks.
+ */
+export function useMinimumScore(
+  options?: Omit<UseQueryOptions<LoanConfig>, "queryKey" | "queryFn">,
+) {
+  return useQuery<LoanConfig>({
+    queryKey: queryKeys.loans.config(),
+    queryFn: async () => {
+      const response = await apiFetch<{ success: boolean; data: LoanConfig }>("/loans/config");
+      return response.data;
+    },
     ...options,
   });
 }
@@ -364,6 +394,24 @@ export function useCreditScoreHistory(
   return useQuery<CreditScoreHistory[]>({
     queryKey: ["creditScoreHistory", userId],
     queryFn: () => apiFetch<CreditScoreHistory[]>(`/score/${userId}/history`),
+    enabled: !!userId,
+    ...options,
+  });
+}
+
+/**
+ * Fetches the current credit score for the authenticated borrower.
+ */
+export function useCreditScore(
+  userId: string | undefined,
+  options?: Omit<UseQueryOptions<number>, "queryKey" | "queryFn">,
+) {
+  return useQuery<number>({
+    queryKey: ["creditScore", userId],
+    queryFn: async () => {
+      const response = await apiFetch<CreditScoreResponse>(`/score/${userId}`);
+      return response.score;
+    },
     enabled: !!userId,
     ...options,
   });

@@ -11,6 +11,7 @@ import {
 } from "../ui/TransactionStatusTracker";
 import { useTransactionPreview } from "../../hooks/useTransactionPreview";
 import { useCreateLoan } from "../../hooks/useApi";
+import { useContractToast } from "../../hooks/useContractToast";
 import { buildUnsignedLoanRequestXdr } from "../../utils/soroban";
 import {
   mapTransactionError,
@@ -63,6 +64,7 @@ export function StepFinalSignature({
 
   const txPreview = useTransactionPreview();
   const createLoan = useCreateLoan();
+  const toast = useContractToast();
 
   const principal = Number(data.amount || "0");
   const estimatedInterest = (principal * ANNUAL_RATE_PERCENT * data.termDays) / (365 * 100);
@@ -167,6 +169,8 @@ export function StepFinalSignature({
         contractAddress: managerContractId,
       },
       async () => {
+        let toastId: string | number | null = null;
+
         setTrackerState("signing");
         setTrackerTitle("Waiting for wallet signature");
         setTrackerMessage("Approve the transaction in your wallet to continue.");
@@ -175,6 +179,7 @@ export function StepFinalSignature({
           setTrackerState("submitting");
           setTrackerTitle("Submitting transaction");
           setTrackerMessage("Sending your loan request to the network.");
+          toastId = toast.showPending("Transaction submitted");
 
           const loan = await createLoan.mutateAsync({
             amount: principal,
@@ -189,6 +194,13 @@ export function StepFinalSignature({
             setTrackerTitle("Loan request submitted");
             setTrackerMessage("Your request was accepted and recorded.");
             setTrackerGuidance("You can monitor approval status from your loans dashboard.");
+            if (toastId !== null) {
+              toast.showSuccess(toastId, {
+                successMessage: "Loan request submitted successfully",
+              });
+            } else {
+              toast.success("Loan request submitted successfully");
+            }
             onSuccess(loan.id);
             return;
           }
@@ -212,6 +224,12 @@ export function StepFinalSignature({
             setTrackerTitle("Transaction confirmed");
             setTrackerMessage("Your loan request is confirmed on-chain.");
             setTrackerGuidance("You can monitor approval status from your loans dashboard.");
+            if (toastId !== null) {
+              toast.showSuccess(toastId, {
+                successMessage: "Loan request confirmed on-chain",
+                txHash: loan.txHash,
+              });
+            }
             onSuccess(loan.id);
             return;
           }
@@ -229,6 +247,16 @@ export function StepFinalSignature({
               ? "Transaction failed on-chain"
               : "Network timeout while polling status",
           );
+
+          if (toastId !== null) {
+            toast.showError(toastId, {
+              errorMessage: pollError.title,
+              retryAction: retrySubmission,
+            });
+          } else {
+            toast.error(pollError.title, pollResult.message);
+          }
+
           setLastErrorDetails(pollError);
           setTrackerState("error");
           setTrackerTitle(pollError.title);
@@ -247,6 +275,16 @@ export function StepFinalSignature({
           setTrackerTitle(mapped.title);
           setTrackerMessage(mapped.message);
           setTrackerGuidance(mapped.guidance);
+
+          if (toastId !== null) {
+            toast.showError(toastId, {
+              errorMessage: mapped.title,
+              retryAction: mapped.retryable ? retrySubmission : undefined,
+            });
+          } else {
+            toast.error(mapped.title, mapped.message);
+          }
+
           throw error;
         }
       },
