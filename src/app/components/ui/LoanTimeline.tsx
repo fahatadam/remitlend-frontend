@@ -33,9 +33,7 @@ export function LoanTimeline({ events }: LoanTimelineProps) {
             {/* Timeline spine */}
             <div className="flex flex-col items-center">
               <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-indigo-600 ring-2 ring-white dark:ring-zinc-950" />
-              {!isLast && (
-                <span className="mt-1 flex-1 w-px bg-zinc-200 dark:bg-zinc-800" />
-              )}
+              {!isLast && <span className="mt-1 flex-1 w-px bg-zinc-200 dark:bg-zinc-800" />}
             </div>
 
             {/* Event card */}

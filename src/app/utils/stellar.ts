@@ -1,6 +1,5 @@
 const EXPLORER_BASE_URL =
-  process.env.NEXT_PUBLIC_STELLAR_EXPLORER_URL ??
-  "https://stellar.expert/explorer/testnet";
+  process.env.NEXT_PUBLIC_STELLAR_EXPLORER_URL ?? "https://stellar.expert/explorer/testnet";
 
 export function getTxUrl(txHash: string): string {
   return `${EXPLORER_BASE_URL}/tx/${txHash}`;
