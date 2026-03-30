@@ -495,7 +495,6 @@ export default function SettingsPage() {
         return <GamificationSettings />;
     }
   };
-  
 
   return (
     <main className="space-y-8 min-h-screen p-8 lg:p-12 max-w-5xl mx-auto">
