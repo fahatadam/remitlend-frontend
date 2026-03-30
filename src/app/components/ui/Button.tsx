@@ -67,7 +67,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading && (
-          <div role="status" aria-label="Loading..." className="mr-2 flex items-center">
+          <div role="status" className="mr-2 flex items-center">
             <svg
               className="h-4 w-4 animate-spin text-current"
               xmlns="http://www.w3.org/2000/svg"

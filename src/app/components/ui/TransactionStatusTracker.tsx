@@ -76,7 +76,7 @@ export function TransactionStatusTracker({
     >
       <div className="flex items-start gap-3">
         {isPending && (
-          <div role="status" aria-label="Loading...">
+          <div role="status">
             <Loader2 className="mt-0.5 h-5 w-5 animate-spin text-blue-600" />
             <span className="sr-only">Loading...</span>
           </div>
