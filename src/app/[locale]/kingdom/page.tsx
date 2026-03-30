@@ -9,20 +9,23 @@ import { SkeletonCard } from "../../components/ui/Skeleton";
 
 const KingdomProgressWidget = dynamic(
   () =>
-    import("../../components/gamification/KingdomProgressWidget").then((m) => m.KingdomProgressWidget),
-  { ssr: false, loading: () => <SkeletonCard /> }
+    import("../../components/gamification/KingdomProgressWidget").then(
+      (m) => m.KingdomProgressWidget,
+    ),
+  { ssr: false, loading: () => <SkeletonCard /> },
 );
 
 const AchievementsPanel = dynamic(
-  () =>
-    import("../../components/gamification/AchievementsPanel").then((m) => m.AchievementsPanel),
-  { ssr: false, loading: () => <SkeletonCard /> }
+  () => import("../../components/gamification/AchievementsPanel").then((m) => m.AchievementsPanel),
+  { ssr: false, loading: () => <SkeletonCard /> },
 );
 
 const GamificationSettings = dynamic(
   () =>
-    import("../../components/gamification/GamificationSettings").then((m) => m.GamificationSettings),
-  { ssr: false, loading: () => <SkeletonCard /> }
+    import("../../components/gamification/GamificationSettings").then(
+      (m) => m.GamificationSettings,
+    ),
+  { ssr: false, loading: () => <SkeletonCard /> },
 );
 
 export default function KingdomPage() {

@@ -17,8 +17,10 @@ import {
 
 const LoanApplicationWizard = dynamic(
   () =>
-    import("../../components/loan-wizard/LoanApplicationWizard").then((m) => m.LoanApplicationWizard),
-  { ssr: false, loading: () => <WizardSkeleton /> }
+    import("../../components/loan-wizard/LoanApplicationWizard").then(
+      (m) => m.LoanApplicationWizard,
+    ),
+  { ssr: false, loading: () => <WizardSkeleton /> },
 );
 
 function getScoreBandMax(score: number): number {

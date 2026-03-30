@@ -32,9 +32,8 @@ import { selectWalletAddress, useWalletStore } from "../../stores/useWalletStore
 import { useSSE } from "../../hooks/useSSE";
 
 const YieldEarningsChart = dynamic(
-  () =>
-    import("../../components/charts/YieldEarningsChart").then((m) => m.YieldEarningsChart),
-  { ssr: false, loading: () => <SkeletonChart /> }
+  () => import("../../components/charts/YieldEarningsChart").then((m) => m.YieldEarningsChart),
+  { ssr: false, loading: () => <SkeletonChart /> },
 );
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";

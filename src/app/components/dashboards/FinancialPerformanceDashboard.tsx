@@ -6,15 +6,13 @@ import type { CreditScoreDataPoint } from "../charts/CreditScoreTrendChart";
 import type { YieldDataPoint } from "../charts/YieldEarningsChart";
 
 const CreditScoreTrendChart = dynamic(
-  () =>
-    import("../charts/CreditScoreTrendChart").then((m) => m.CreditScoreTrendChart),
-  { ssr: false, loading: () => <SkeletonChart /> }
+  () => import("../charts/CreditScoreTrendChart").then((m) => m.CreditScoreTrendChart),
+  { ssr: false, loading: () => <SkeletonChart /> },
 );
 
 const YieldEarningsChart = dynamic(
-  () =>
-    import("../charts/YieldEarningsChart").then((m) => m.YieldEarningsChart),
-  { ssr: false, loading: () => <SkeletonChart /> }
+  () => import("../charts/YieldEarningsChart").then((m) => m.YieldEarningsChart),
+  { ssr: false, loading: () => <SkeletonChart /> },
 );
 import { useCreditScoreHistory, useYieldHistory } from "@/app/hooks/useApi";
 import { Card } from "../ui/Card";
