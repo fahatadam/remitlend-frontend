@@ -245,25 +245,86 @@ export default function RemittancesPage() {
             Status
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {(["all", "completed", "pending", "processing", "failed"] as const).map((status) => (
-              <button
-                key={status}
-                onClick={() => {
-                  setStatusFilter(status);
-                  setPage(1);
-                  setPageCursors({ 1: null });
-                }}
-                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  statusFilter === status
-                    ? "bg-indigo-600 text-white"
-                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
-                }`}
-              >
-                {status === "all" ? "All" : STATUS_CONFIG[status].label}
-              </button>
-            ))}
+        <CardContent className="space-y-4">
+          {/* Search + Status */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+              <input
+                type="text"
+                placeholder="Search by recipient or currency..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-lg border border-zinc-200 bg-white pl-10 pr-4 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-indigo-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+              />
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+              {(["all", "completed", "pending", "processing", "failed"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                    statusFilter === s
+                      ? "bg-indigo-600 text-white"
+                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+                  }`}
+                  aria-pressed={statusFilter === s}
+                >
+                  {s === "all" ? "All" : STATUS_CONFIG[s].label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Date + Amount range */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block">
+                From Date
+              </label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block">
+                To Date
+              </label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block">
+                Min Amount
+              </label>
+              <input
+                type="number"
+                placeholder="0.00"
+                value={minAmount}
+                onChange={(e) => setMinAmount(e.target.value)}
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-indigo-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block">
+                Max Amount
+              </label>
+              <input
+                type="number"
+                placeholder="0.00"
+                value={maxAmount}
+                onChange={(e) => setMaxAmount(e.target.value)}
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-indigo-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
