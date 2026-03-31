@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Calendar,
   DollarSign,
+  Search
 } from "lucide-react";
 import {
   useWalletStore,
@@ -115,6 +116,11 @@ export default function RemittancesPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [page, setPage] = useState(1);
   const [pageCursors, setPageCursors] = useState<Record<number, string | null>>({ 1: null });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [minAmount, setMinAmount] = useState("");
+  const [maxAmount, setMaxAmount] = useState("");
 
   const statusParam = statusFilter === "all" ? undefined : statusFilter;
   const {
