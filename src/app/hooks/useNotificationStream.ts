@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { EventSourcePolyfill } from "event-source-polyfill";
 import { useUserStore, type UserStore } from "../stores/useUserStore";
 import { queryKeys, type AppNotification } from "./useApi";
 
@@ -18,7 +19,7 @@ export function useNotificationStream() {
   const queryClient = useQueryClient();
   const token = useUserStore((s: UserStore) => s.authToken);
   const retryDelay = useRef(1_000);
-  const esRef = useRef<EventSource | null>(null);
+  const esRef = useRef<EventSource | { close: () => void } | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -29,12 +30,13 @@ export function useNotificationStream() {
     function connect() {
       if (cancelled) return;
 
-      // EventSource is notoriously difficult to authenticate because it doesn't
-      // support custom headers. We now rely on the secure, HTTP-only JWT
-      // cookie set during login instead of passing the token as a leaky
-      // query parameter.
       const url = `${API_URL}/api/notifications/stream`;
-      const es = new EventSource(url, { withCredentials: true });
+      const es = new EventSourcePolyfill(url, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       esRef.current = es;
 
       es.onopen = () => {

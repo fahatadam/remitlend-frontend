@@ -4,10 +4,12 @@ import { useMemo } from "react";
 import { ArrowUp, ArrowDown } from "lucide-react";
 
 interface CreditScoreGaugeProps {
-  score: number;
+  score?: number | null;
   previousScore?: number;
   min?: number;
   max?: number;
+  isLoading?: boolean;
+  error?: string | null;
 }
 
 type ScoreBand = {
@@ -50,9 +52,35 @@ export function CreditScoreGauge({
   previousScore,
   min = 300,
   max = 850,
+  isLoading,
+  error,
 }: CreditScoreGaugeProps) {
-  const band = useMemo(() => getBand(score), [score]);
-  const delta = previousScore != null ? score - previousScore : null;
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center gap-3" aria-busy="true" aria-live="polite">
+        <div className="relative h-[160px] w-[240px] animate-pulse rounded-2xl bg-zinc-100 dark:bg-zinc-900" />
+        <div className="h-4 w-28 animate-pulse rounded bg-zinc-100 dark:bg-zinc-900" />
+        <div className="h-3 w-64 animate-pulse rounded bg-zinc-100 dark:bg-zinc-900" />
+      </div>
+    );
+  }
+
+  const numericScore = typeof score === "number" && Number.isFinite(score) ? score : null;
+  if (error || numericScore === null) {
+    return (
+      <div className="flex flex-col items-center gap-2 text-center">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+          <p className="font-semibold text-zinc-900 dark:text-zinc-50">Credit score unavailable</p>
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            {error ? error : "We couldn’t load your score right now. Please try again."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const band = useMemo(() => getBand(numericScore), [numericScore]);
+  const delta = previousScore != null ? numericScore - previousScore : null;
 
   const cx = 120;
   const cy = 120;
@@ -61,7 +89,7 @@ export function CreditScoreGauge({
   const endAngle = 120;
   const totalArc = endAngle - startAngle;
 
-  const clampedScore = Math.max(min, Math.min(max, score));
+  const clampedScore = Math.max(min, Math.min(max, numericScore));
   const fraction = (clampedScore - min) / (max - min);
   const scoreAngle = startAngle + fraction * totalArc;
 
@@ -79,7 +107,11 @@ export function CreditScoreGauge({
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="relative" role="img" aria-label={`Credit score: ${score}, ${band.label}`}>
+      <div
+        className="relative"
+        role="img"
+        aria-label={`Credit score: ${numericScore}, ${band.label}`}
+      >
         <svg width="240" height="160" viewBox="0 60 240 140">
           {/* Background band arcs */}
           {bandArcs.map((b) => (
@@ -119,7 +151,7 @@ export function CreditScoreGauge({
 
         {/* Center score display */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pt-4">
-          <span className={`text-4xl font-bold ${band.color}`}>{score}</span>
+          <span className={`text-4xl font-bold ${band.color}`}>{numericScore}</span>
         </div>
       </div>
 
