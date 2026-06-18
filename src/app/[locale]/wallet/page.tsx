@@ -28,6 +28,7 @@ import {
 } from "../../stores/useWalletStore";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
+import { useTranslations } from "next-intl";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -299,6 +300,7 @@ function TransactionHistoryCard({
 }) {
   const [page, setPage] = useState(1);
   const [pageCursors, setPageCursors] = useState<Record<number, string | null>>({ 1: null });
+  const tWallet = useTranslations("WalletPage");
   const { data, isLoading, isError } = useHorizonPayments(
     address,
     horizonUrl,
@@ -354,8 +356,18 @@ function TransactionHistoryCard({
         stellarExplorerLink: `${explorerBase}/tx/${p.transaction_hash}`,
       };
     });
-
-    downloadCsv(`remitlend-activity-${today}.csv`, rowsToCsv(rows));
+    downloadCsv(
+      `remitlend-wallet-${today}.csv`,
+      rowsToCsv(rows, [
+        { key: "date", label: tWallet("csv.date") },
+        { key: "type", label: tWallet("csv.type") },
+        { key: "amount", label: tWallet("csv.amount") },
+        { key: "asset", label: tWallet("csv.asset") },
+        { key: "status", label: tWallet("csv.status") },
+        { key: "transactionHash", label: tWallet("csv.transactionHash") },
+        { key: "stellarExplorerLink", label: tWallet("csv.stellarExplorerLink") },
+      ]),
+    );
   }
 
   return (
