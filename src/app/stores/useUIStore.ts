@@ -9,7 +9,7 @@
  *  - Toast notification queue
  *  - Global (page-level) loading overlay
  *
- * Design decision: no persistence — UI state should always start fresh.
+ * Design decision: most UI state starts fresh, but settings (sound/motion) are persisted.
  */
 
 import { create } from "zustand";
@@ -214,10 +214,17 @@ export const useUIStore = create<UIStore>()(
         soundEnabled: state.soundEnabled,
         reducedMotion: state.reducedMotion,
       }),
-    },
+    }
   ),
-  { name: "UIStore" },
-);
+  { name: "UIStore" }
+));
+
+if (typeof window !== "undefined") {
+  const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mediaQuery.addEventListener("change", (e) => {
+    useUIStore.getState().setReducedMotion(e.matches);
+  });
+}
 
 // ─── Selectors ────────────────────────────────────────────────────────────────
 

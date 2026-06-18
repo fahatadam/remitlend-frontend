@@ -41,11 +41,6 @@ interface GamificationState {
   kingdomTitle: KingdomLevel;
   achievements: Achievement[];
 
-  // Settings
-  soundEnabled: boolean;
-  animationsEnabled: boolean;
-  soundVolume: number; // 0-1
-
   // UI state
   showLevelUpModal: boolean;
   pendingLevelUp: LevelUpReward | null;
@@ -63,11 +58,6 @@ interface GamificationActions {
   // Achievements
   unlockAchievement: (achievementId: string) => void;
   updateAchievementProgress: (achievementId: string, progress: number) => void;
-
-  // Settings
-  toggleSound: () => void;
-  toggleAnimations: () => void;
-  setSoundVolume: (volume: number) => void;
 
   // Reset
   resetGamification: () => void;
@@ -191,9 +181,6 @@ const initialState: GamificationState = {
   xp: 0,
   kingdomTitle: "Peasant",
   achievements: INITIAL_ACHIEVEMENTS,
-  soundEnabled: true,
-  animationsEnabled: true,
-  soundVolume: 0.5,
   showLevelUpModal: false,
   pendingLevelUp: null,
   recentXPGain: null,
@@ -297,26 +284,6 @@ export const useGamificationStore = create<GamificationStore>()(
           );
         },
 
-        toggleSound: () => {
-          set(
-            (state) => ({ soundEnabled: !state.soundEnabled }),
-            false,
-            "gamification/toggleSound",
-          );
-        },
-
-        toggleAnimations: () => {
-          set(
-            (state) => ({ animationsEnabled: !state.animationsEnabled }),
-            false,
-            "gamification/toggleAnimations",
-          );
-        },
-
-        setSoundVolume: (volume) => {
-          set({ soundVolume: Math.max(0, Math.min(1, volume)) }, false, "gamification/setVolume");
-        },
-
         resetGamification: () => {
           set({ ...initialState }, false, "gamification/reset");
         },
@@ -335,9 +302,6 @@ export const selectLevel = (state: GamificationStore) => state.level;
 export const selectXP = (state: GamificationStore) => state.xp;
 export const selectKingdomTitle = (state: GamificationStore) => state.kingdomTitle;
 export const selectAchievements = (state: GamificationStore) => state.achievements;
-export const selectSoundEnabled = (state: GamificationStore) => state.soundEnabled;
-export const selectAnimationsEnabled = (state: GamificationStore) => state.animationsEnabled;
-export const selectSoundVolume = (state: GamificationStore) => state.soundVolume;
 export const selectShowLevelUpModal = (state: GamificationStore) => state.showLevelUpModal;
 export const selectPendingLevelUp = (state: GamificationStore) => state.pendingLevelUp;
 

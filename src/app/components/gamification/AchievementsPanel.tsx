@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Lock, CheckCircle } from "lucide-react";
 import { useGamificationStore } from "@/app/stores/useGamificationStore";
+import { useUIStore } from "@/app/stores/useUIStore";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
 
 interface AchievementsPanelProps {
@@ -11,7 +12,8 @@ interface AchievementsPanelProps {
 
 export function AchievementsPanel({ className }: AchievementsPanelProps) {
   const achievements = useGamificationStore((state) => state.achievements);
-  const animationsEnabled = useGamificationStore((state) => state.animationsEnabled);
+  const reducedMotion = useUIStore((state) => state.reducedMotion);
+  const animationsEnabled = !reducedMotion;
 
   const unlockedCount = achievements.filter((a) => a.unlockedAt).length;
   const totalCount = achievements.length;

@@ -25,7 +25,7 @@ class SoundManager {
   constructor() {
     if (typeof window !== "undefined") {
       this.initializeSounds();
-      
+
       // Sync with store
       this.enabled = useUIStore.getState().soundEnabled;
       useUIStore.subscribe((state) => {
