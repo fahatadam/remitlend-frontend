@@ -36,12 +36,7 @@ export function LoansPageClient() {
   const [now] = useState(() => Date.now());
   const address = useWalletStore(selectWalletAddress);
 
-  const {
-    data: loansPage,
-    isLoading,
-    isError,
-    refetch,
-  } = useBorrowerLoansPage(address ?? undefined, {
+  const { data: loansPage, isLoading } = useBorrowerLoansPage(address ?? undefined, {
     limit: PAGE_SIZE,
     cursor: pageCursors[page] ?? null,
     status: activeTab === "all" ? undefined : activeTab,
