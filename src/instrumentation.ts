@@ -8,11 +8,26 @@ export async function register() {
   }
 }
 
+// Type definitions matching Sentry's captureRequestError signature
+interface RequestInfo {
+  path: string;
+  method: string;
+  headers: Record<string, string | string[] | undefined>;
+}
+
+interface ErrorContext {
+  routerKind: string;
+  routePath: string;
+  routeType: string;
+}
+
+// Type-safe handler for Next.js onRequestError instrumentation hook
+// See: https://nextjs.org/docs/app/api-reference/functions/instrumentation#onrequesterror
 export const onRequestError = async (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ...args: any[]
-) => {
+  error: unknown,
+  request: RequestInfo,
+  errorContext: ErrorContext,
+): Promise<void> => {
   const { captureRequestError } = await import("@sentry/nextjs");
-  // @ts-expect-error – captureRequestError accepts spread args matching Next.js internals
-  captureRequestError(...args);
+  captureRequestError(error, request, errorContext);
 };

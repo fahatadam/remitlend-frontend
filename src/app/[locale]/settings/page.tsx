@@ -18,6 +18,7 @@ import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { GamificationSettings } from "../../components/gamification/GamificationSettings";
 import { useThemeStore } from "../../stores/useThemeStore";
+import type { Theme } from "../../lib/theme";
 import {
   useWalletStore,
   selectWalletAddress,
@@ -459,12 +460,12 @@ function DisplaySection() {
             </p>
           </div>
           <div className="inline-flex items-center gap-2">
-            {(["light", "dark", "system"] as const).map((opt) => {
+            {(["light", "dark", "system"] as const).map((opt: Theme) => {
               const active = theme === opt;
               return (
                 <button
                   key={opt}
-                  onClick={() => setTheme(opt as any)}
+                  onClick={() => setTheme(opt)}
                   className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                     active
                       ? "bg-indigo-600 text-white"
