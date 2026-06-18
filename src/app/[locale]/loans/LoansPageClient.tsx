@@ -80,17 +80,6 @@ export function LoansPageClient() {
     return <LoansListSkeleton />;
   }
 
-  if (isError) {
-    return (
-      <section className="py-4">
-        <QueryError
-          message="Failed to load loans. Check your connection and try again."
-          onRetry={() => refetch()}
-        />
-      </section>
-    );
-  }
-
   return (
     <section className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

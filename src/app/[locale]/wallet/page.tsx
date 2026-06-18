@@ -314,11 +314,7 @@ function TransactionHistoryCard({
 }) {
   const [page, setPage] = useState(1);
   const [pageCursors, setPageCursors] = useState<Record<number, string | null>>({ 1: null });
-  const { data, isLoading, isError, refetch } = useHorizonPayments(
-    address,
-    horizonUrl,
-    pageCursors[page] ?? null,
-  );
+  const { data, isLoading } = useHorizonPayments(address, horizonUrl, pageCursors[page] ?? null);
   const payments = data?.records ?? [];
   const totalPages = useMemo(() => {
     const knownPages = Object.keys(pageCursors).length;
