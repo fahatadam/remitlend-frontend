@@ -21,6 +21,14 @@ import { createJSONStorage, devtools, persist } from "zustand/middleware";
 
 export type WalletStatus = "disconnected" | "connecting" | "connected" | "error";
 
+export type WalletErrorKind =
+  | "not_installed"
+  | "user_rejected"
+  | "locked"
+  | "network_mismatch"
+  | "generic"
+  | null;
+
 export interface TokenBalance {
   symbol: string;
   /** Human-readable amount, e.g. "1.234" */
@@ -49,6 +57,10 @@ interface WalletState {
   isLoadingBalances: boolean;
   /** Human-readable error message */
   error: string | null;
+  /** Structured error kind for distinct UI treatment */
+  errorKind: WalletErrorKind;
+  /** True when Freighter's active network differs from the app's target network */
+  networkMismatch: boolean;
   /** Whether the app should try to restore the wallet on refresh */
   shouldAutoReconnect: boolean;
 }
@@ -63,8 +75,9 @@ interface WalletActions {
   /** Update network when the user switches chains */
   setNetwork: (network: WalletNetwork) => void;
   setStatus: (status: WalletStatus) => void;
-  setError: (error: string | null, status?: WalletStatus) => void;
+  setError: (error: string | null, status?: WalletStatus, kind?: WalletErrorKind) => void;
   setLoadingBalances: (loading: boolean) => void;
+  setNetworkMismatch: (mismatch: boolean) => void;
 }
 
 export type WalletStore = WalletState & WalletActions;
@@ -78,6 +91,8 @@ const initialState: WalletState = {
   balances: [],
   isLoadingBalances: false,
   error: null,
+  errorKind: null,
+  networkMismatch: false,
   shouldAutoReconnect: false,
 };
 
@@ -118,11 +133,18 @@ export const useWalletStore = create<WalletStore>()(
 
         setStatus: (status) => set({ status }, false, "wallet/setStatus"),
 
-        setError: (error, status = "error") =>
-          set({ error, status, isLoadingBalances: false }, false, "wallet/setError"),
+        setError: (error, status = "error", kind = "generic") =>
+          set(
+            { error, status, errorKind: error === null ? null : kind, isLoadingBalances: false },
+            false,
+            "wallet/setError",
+          ),
 
         setLoadingBalances: (isLoadingBalances) =>
           set({ isLoadingBalances }, false, "wallet/setLoadingBalances"),
+
+        setNetworkMismatch: (networkMismatch) =>
+          set({ networkMismatch }, false, "wallet/setNetworkMismatch"),
       }),
       {
         name: "remitlend-wallet",
@@ -148,4 +170,6 @@ export const selectIsWalletConnected = (state: WalletStore) => state.status === 
 export const selectWalletNetwork = (state: WalletStore) => state.network;
 export const selectWalletBalances = (state: WalletStore) => state.balances;
 export const selectWalletError = (state: WalletStore) => state.error;
+export const selectWalletErrorKind = (state: WalletStore) => state.errorKind;
+export const selectNetworkMismatch = (state: WalletStore) => state.networkMismatch;
 export const selectWalletShouldAutoReconnect = (state: WalletStore) => state.shouldAutoReconnect;

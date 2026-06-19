@@ -27,9 +27,12 @@ import {
   selectWalletAddress,
   selectWalletNetwork,
   selectIsWalletConnected,
+  selectNetworkMismatch,
 } from "../../stores/useWalletStore";
+import { useWallet } from "../../components/providers/WalletProvider";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
+import { AlertTriangle } from "lucide-react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -182,6 +185,35 @@ function QRDisplay({ address }: { address: string }) {
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Network mismatch banner ───────────────────────────────────────────────────
+
+function NetworkMismatchBanner({
+  freighterNetwork,
+  appNetwork,
+}: {
+  freighterNetwork: string;
+  appNetwork: string;
+}) {
+  return (
+    <div
+      role="alert"
+      aria-live="assertive"
+      className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/30 dark:bg-amber-500/10"
+    >
+      <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+      <div className="flex-1 text-sm">
+        <p className="font-semibold text-amber-800 dark:text-amber-300">Wrong network</p>
+        <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+          Freighter is connected to{" "}
+          <span className="font-mono font-semibold">{freighterNetwork}</span> but this app runs on{" "}
+          <span className="font-mono font-semibold">{appNetwork}</span>. Open Freighter and switch
+          networks to continue.
+        </p>
+      </div>
     </div>
   );
 }
@@ -501,6 +533,8 @@ export default function WalletPage() {
   const isConnected = useWalletStore(selectIsWalletConnected);
   const address = useWalletStore(selectWalletAddress);
   const network = useWalletStore(selectWalletNetwork);
+  const networkMismatch = useWalletStore(selectNetworkMismatch);
+  const { appTargetNetwork } = useWallet();
 
   if (!isConnected || !address) return <ConnectWalletPrompt />;
 
@@ -513,6 +547,10 @@ export default function WalletPage() {
         <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">My Wallet</p>
         <h1 className="mt-1 text-3xl font-bold text-zinc-900 dark:text-zinc-50">Wallet</h1>
       </header>
+
+      {networkMismatch && network?.name && (
+        <NetworkMismatchBanner freighterNetwork={network.name} appNetwork={appTargetNetwork} />
+      )}
 
       {/* Address card */}
       <QueryErrorBoundary scope="wallet address" variant="section">
