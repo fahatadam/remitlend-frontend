@@ -135,89 +135,93 @@ export const useUIStore = create<UIStore>()(
       (set) => ({
         ...initialState,
 
-      // ── Modals ──────────────────────────────────────────────────────────────
+        // ── Modals ──────────────────────────────────────────────────────────────
 
-      openModal: (id, data) =>
-        set(
-          (state) => ({
-            modals: {
-              ...state.modals,
-              [id]: { isOpen: true, data },
-            },
-          }),
-          false,
-          `ui/openModal:${id}`,
-        ),
+        openModal: (id, data) =>
+          set(
+            (state) => ({
+              modals: {
+                ...state.modals,
+                [id]: { isOpen: true, data },
+              },
+            }),
+            false,
+            `ui/openModal:${id}`,
+          ),
 
-      closeModal: (id) =>
-        set(
-          (state) => ({
-            modals: {
-              ...state.modals,
-              [id]: { isOpen: false, data: undefined },
-            },
-          }),
-          false,
-          `ui/closeModal:${id}`,
-        ),
+        closeModal: (id) =>
+          set(
+            (state) => ({
+              modals: {
+                ...state.modals,
+                [id]: { isOpen: false, data: undefined },
+              },
+            }),
+            false,
+            `ui/closeModal:${id}`,
+          ),
 
-      closeAllModals: () => set({ modals: defaultModals }, false, "ui/closeAllModals"),
+        closeAllModals: () => set({ modals: defaultModals }, false, "ui/closeAllModals"),
 
-      // ── Toasts ──────────────────────────────────────────────────────────────
+        // ── Toasts ──────────────────────────────────────────────────────────────
 
-      addToast: (toast) => {
-        const id = toast.id ?? `toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-        const duration = toast.duration ?? 4000;
-        const fullToast: Toast = {
-          ...toast,
-          id,
-          duration,
-        };
-        set((state) => ({ toasts: [...state.toasts, fullToast] }), false, "ui/addToast");
-        return id;
-      },
+        addToast: (toast) => {
+          const id = toast.id ?? `toast-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+          const duration = toast.duration ?? 4000;
+          const fullToast: Toast = {
+            ...toast,
+            id,
+            duration,
+          };
+          set((state) => ({ toasts: [...state.toasts, fullToast] }), false, "ui/addToast");
+          return id;
+        },
 
-      dismissToast: (id) =>
-        set(
-          (state) => ({
-            toasts: state.toasts.filter((t) => t.id !== id),
-          }),
-          false,
-          "ui/dismissToast",
-        ),
+        dismissToast: (id) =>
+          set(
+            (state) => ({
+              toasts: state.toasts.filter((t) => t.id !== id),
+            }),
+            false,
+            "ui/dismissToast",
+          ),
 
-      clearToasts: () => set({ toasts: [] }, false, "ui/clearToasts"),
+        clearToasts: () => set({ toasts: [] }, false, "ui/clearToasts"),
 
-      // ── Global loading ───────────────────────────────────────────────────────
+        // ── Global loading ───────────────────────────────────────────────────────
 
-      showGlobalLoading: (message) =>
-        set(
-          { isGlobalLoading: true, globalLoadingMessage: message ?? null },
-          false,
-          "ui/showGlobalLoading",
-        ),
+        showGlobalLoading: (message) =>
+          set(
+            { isGlobalLoading: true, globalLoadingMessage: message ?? null },
+            false,
+            "ui/showGlobalLoading",
+          ),
 
-      hideGlobalLoading: () =>
-        set({ isGlobalLoading: false, globalLoadingMessage: null }, false, "ui/hideGlobalLoading"),
+        hideGlobalLoading: () =>
+          set(
+            { isGlobalLoading: false, globalLoadingMessage: null },
+            false,
+            "ui/hideGlobalLoading",
+          ),
 
-      // ── Settings ─────────────────────────────────────────────────────────────
+        // ── Settings ─────────────────────────────────────────────────────────────
 
-      setSoundEnabled: (enabled) =>
-        set({ soundEnabled: enabled }, false, "ui/setSoundEnabled"),
+        setSoundEnabled: (enabled) => set({ soundEnabled: enabled }, false, "ui/setSoundEnabled"),
 
-      setReducedMotion: (reduced) =>
-        set({ reducedMotion: reduced }, false, "ui/setReducedMotion"),
-    }),
-    {
-      name: "ui-store",
-      partialize: (state) => ({
-        soundEnabled: state.soundEnabled,
-        reducedMotion: state.reducedMotion,
+        setReducedMotion: (reduced) =>
+          set({ reducedMotion: reduced }, false, "ui/setReducedMotion"),
       }),
-    }
+      {
+        name: "ui-store",
+        partialize: (state) => ({
+          soundEnabled: state.soundEnabled,
+          reducedMotion: state.reducedMotion,
+        }),
+      },
+    ),
+    { name: "UIStore" },
   ),
-  { name: "UIStore" }
-));
+);
 
 if (typeof window !== "undefined") {
   const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");

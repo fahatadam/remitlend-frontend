@@ -34,6 +34,8 @@ export {
   selectToasts,
   selectIsGlobalLoading,
   selectGlobalLoadingMessage,
+  selectSoundEnabled,
+  selectReducedMotion,
 } from "./useUIStore";
 export type { Toast, ToastVariant, ModalId, UIStore } from "./useUIStore";
 
@@ -43,9 +45,6 @@ export {
   selectXP,
   selectKingdomTitle,
   selectAchievements,
-  selectSoundEnabled,
-  selectAnimationsEnabled,
-  selectSoundVolume,
   selectShowLevelUpModal,
   selectPendingLevelUp,
   getNextLevelInfo,

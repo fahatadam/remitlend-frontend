@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useGamificationStore } from "../../stores/useGamificationStore";
+import { useUIStore } from "../../stores/useUIStore";
 import { XPGainAnimation } from "../gamification/XPGainAnimation";
 import { useSoundEffect } from "../../utils/soundManager";
 
 export function GlobalXPGain() {
   const recentXPGain = useGamificationStore((state) => state.recentXPGain);
   const clearRecentXPGain = useGamificationStore((state) => state.clearRecentXPGain);
-  const soundEnabled = useGamificationStore((state) => state.soundEnabled);
+  const soundEnabled = useUIStore((state) => state.soundEnabled);
   const sound = useSoundEffect();
 
   const [queue, setQueue] = useState<{ amount: number; reason: string; id: number }[]>([]);
@@ -20,6 +21,7 @@ export function GlobalXPGain() {
 
   useEffect(() => {
     if (recentXPGain) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setQueue((prev) => {
         // Prevent duplicate enqueue
         if (
@@ -37,6 +39,7 @@ export function GlobalXPGain() {
   useEffect(() => {
     if (!activeGain && queue.length > 0) {
       const next = queue[0];
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveGain(next);
       setQueue((prev) => prev.slice(1));
       if (soundEnabled) {
