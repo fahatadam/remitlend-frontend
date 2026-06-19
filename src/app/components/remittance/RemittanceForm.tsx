@@ -166,10 +166,14 @@ export function RemittanceForm({ onSuccess }: RemittanceFormProps) {
 
             {/* Token Selection */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+              <label
+                htmlFor="remittance-token"
+                className="block text-sm font-semibold text-zinc-900 dark:text-zinc-50"
+              >
                 Token <span className="text-red-600">*</span>
               </label>
               <select
+                id="remittance-token"
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
                 disabled={mutation.isPending}
@@ -207,10 +211,14 @@ export function RemittanceForm({ onSuccess }: RemittanceFormProps) {
 
             {/* Memo (Optional) */}
             <div className="space-y-2">
-              <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+              <label
+                htmlFor="remittance-memo"
+                className="block text-sm font-semibold text-zinc-900 dark:text-zinc-50"
+              >
                 Memo <span className="text-zinc-400">(optional)</span>
               </label>
               <textarea
+                id="remittance-memo"
                 placeholder="Add a note for the recipient (max 28 characters)"
                 value={memo}
                 onChange={(e) => handleMemoChange(e.target.value)}

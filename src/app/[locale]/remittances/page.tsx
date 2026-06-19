@@ -264,10 +264,14 @@ export default function RemittancesPage() {
           {/* Date + Amount range */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block">
+              <label
+                htmlFor="remittance-filter-from-date"
+                className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block"
+              >
                 From Date
               </label>
               <input
+                id="remittance-filter-from-date"
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
@@ -275,10 +279,14 @@ export default function RemittancesPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block">
+              <label
+                htmlFor="remittance-filter-to-date"
+                className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block"
+              >
                 To Date
               </label>
               <input
+                id="remittance-filter-to-date"
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
@@ -286,10 +294,14 @@ export default function RemittancesPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block">
+              <label
+                htmlFor="remittance-filter-min-amount"
+                className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block"
+              >
                 Min Amount
               </label>
               <input
+                id="remittance-filter-min-amount"
                 type="number"
                 placeholder="0.00"
                 value={minAmount}
@@ -298,10 +310,14 @@ export default function RemittancesPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block">
+              <label
+                htmlFor="remittance-filter-max-amount"
+                className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block"
+              >
                 Max Amount
               </label>
               <input
+                id="remittance-filter-max-amount"
                 type="number"
                 placeholder="0.00"
                 value={maxAmount}

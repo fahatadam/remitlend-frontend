@@ -91,8 +91,10 @@ export function StepAmountAsset({ data, onChange, onNext, error, onError }: Step
           </CardHeader>
           <CardContent className="space-y-5">
             {/* Asset selector */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Asset</label>
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Asset
+              </legend>
               <div className="flex flex-col gap-2">
                 {ASSETS.map((asset) => (
                   <button
@@ -116,7 +118,7 @@ export function StepAmountAsset({ data, onChange, onNext, error, onError }: Step
                   </button>
                 ))}
               </div>
-            </div>
+            </fieldset>
 
             {/* Amount */}
             <Input
@@ -143,10 +145,10 @@ export function StepAmountAsset({ data, onChange, onNext, error, onError }: Step
             />
 
             {/* Term */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 Repayment Term <span className="text-red-500">*</span>
-              </label>
+              </legend>
               <div className="grid grid-cols-3 gap-2">
                 {TERM_OPTIONS.map((option) => (
                   <button
@@ -164,7 +166,7 @@ export function StepAmountAsset({ data, onChange, onNext, error, onError }: Step
                   </button>
                 ))}
               </div>
-            </div>
+            </fieldset>
 
             {error && (
               <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">

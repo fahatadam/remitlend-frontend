@@ -480,10 +480,14 @@ function DisplaySection() {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-zinc-900 dark:text-zinc-100 block mb-2">
+          <label
+            htmlFor="settings-language"
+            className="text-sm font-medium text-zinc-900 dark:text-zinc-100 block mb-2"
+          >
             Language
           </label>
           <select
+            id="settings-language"
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
             className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-indigo-500 focus:outline-none dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50"
