@@ -8,7 +8,7 @@ import { useLoans, useRemittances } from "../../hooks/useApi";
 import { ErrorBoundary } from "../../components/global_ui/ErrorBoundary";
 import { StatusIndicator } from "../../components/ui/StatusIndicator";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { downloadCsv, rowsToCsv } from "../../utils/csv";
+import { downloadCsvAsync } from "../../utils/csv";
 
 type FilterType = "all" | "loan" | "remittance";
 
@@ -102,30 +102,27 @@ export default function ActivityPage() {
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedActivity = allActivity.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
-  function handleExportCsv() {
-  const today = new Date().toISOString().split("T")[0];
-  const rows = allActivity.map((item) => ({
-    date: formatDate(item.timestamp),
-    type: item.type,
-    amount: item.amount,
-    status: item.status,
-    transactionHash: item.txHash ?? "",
-    stellarExplorerLink: item.txHash
-      ? `https://stellar.expert/explorer/public/tx/${item.txHash}`
-      : "",
-  }));
-  downloadCsv(
-    `remitlend-activity-${today}.csv`,
-    rowsToCsv(rows, [
+  async function handleExportCsv() {
+    const today = new Date().toISOString().split("T")[0];
+    const rows = allActivity.map((item) => ({
+      date: formatDate(item.timestamp),
+      type: item.type,
+      amount: item.amount,
+      status: item.status,
+      transactionHash: item.txHash ?? "",
+      stellarExplorerLink: item.txHash
+        ? `https://stellar.expert/explorer/public/tx/${item.txHash}`
+        : "",
+    }));
+    await downloadCsvAsync(`remitlend-activity-${today}.csv`, rows, [
       { key: "date", label: t("csv.date") },
       { key: "type", label: t("csv.type") },
       { key: "amount", label: t("csv.amount") },
       { key: "status", label: t("csv.status") },
       { key: "transactionHash", label: t("csv.transactionHash") },
       { key: "stellarExplorerLink", label: t("csv.stellarExplorerLink") },
-    ]),
-  );
-}
+    ]);
+  }
 
   if (!isConnected) {
     return (

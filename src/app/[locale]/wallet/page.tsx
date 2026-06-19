@@ -19,7 +19,7 @@ import { PaginationControls } from "../../components/ui/PaginationControls";
 import { Spinner } from "../../components/global_ui/Spinner";
 import { TransactionsSkeleton } from "../../components/skeletons/TransactionsSkeleton";
 import { ErrorBoundary } from "../../components/global_ui/ErrorBoundary";
-import { downloadCsv, rowsToCsv } from "../../utils/csv";
+import { downloadCsvAsync } from "../../utils/csv";
 import {
   useWalletStore,
   selectWalletAddress,
@@ -342,7 +342,7 @@ function TransactionHistoryCard({
     return `${parseFloat(p.amount).toLocaleString("en-US", { maximumFractionDigits: 7 })} ${asset}`;
   }
 
-  function exportCsv() {
+  async function exportCsv() {
     const today = new Date().toISOString().split("T")[0];
     const rows = payments.map((p) => {
       const asset = p.asset_type === "native" ? "XLM" : (p.asset_code ?? "");
@@ -356,18 +356,15 @@ function TransactionHistoryCard({
         stellarExplorerLink: `${explorerBase}/tx/${p.transaction_hash}`,
       };
     });
-    downloadCsv(
-      `remitlend-wallet-${today}.csv`,
-      rowsToCsv(rows, [
-        { key: "date", label: tWallet("csv.date") },
-        { key: "type", label: tWallet("csv.type") },
-        { key: "amount", label: tWallet("csv.amount") },
-        { key: "asset", label: tWallet("csv.asset") },
-        { key: "status", label: tWallet("csv.status") },
-        { key: "transactionHash", label: tWallet("csv.transactionHash") },
-        { key: "stellarExplorerLink", label: tWallet("csv.stellarExplorerLink") },
-      ]),
-    );
+    await downloadCsvAsync(`remitlend-wallet-${today}.csv`, rows, [
+      { key: "date", label: tWallet("csv.date") },
+      { key: "type", label: tWallet("csv.type") },
+      { key: "amount", label: tWallet("csv.amount") },
+      { key: "asset", label: tWallet("csv.asset") },
+      { key: "status", label: tWallet("csv.status") },
+      { key: "transactionHash", label: tWallet("csv.transactionHash") },
+      { key: "stellarExplorerLink", label: tWallet("csv.stellarExplorerLink") },
+    ]);
   }
 
   return (

@@ -10,12 +10,7 @@ const UTF8_BOM = "\uFEFF";
  * - Escape any double-quote inside the value by doubling it ("").
  */
 function escapeCsvValue(value: string): string {
-  if (
-    value.includes('"') ||
-    value.includes(",") ||
-    value.includes("\n") ||
-    value.includes("\r")
-  ) {
+  if (value.includes('"') || value.includes(",") || value.includes("\n") || value.includes("\r")) {
     return `"${value.replaceAll('"', '""')}"`;
   }
   return value;
@@ -115,7 +110,11 @@ export function downloadCsv(filename: string, csv: string): void {
  * Async variant — builds the CSV off the main thread in chunks then triggers
  * the download.  Prefer this for exports with more than a few hundred rows.
  */
-export async function downloadCsvAsync(filename: string, rows: CsvRow[], headers?: string[] | Array<{ key: string; label: string }>): Promise<void> {
+export async function downloadCsvAsync(
+  filename: string,
+  rows: CsvRow[],
+  headers?: string[] | Array<{ key: string; label: string }>,
+): Promise<void> {
   const csv = await rowsToCsvAsync(rows, headers);
   downloadCsv(filename, csv);
 }

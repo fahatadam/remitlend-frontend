@@ -1,4 +1,3 @@
-import { describe, it, expect } from "vitest";
 import { rowsToCsv, rowsToCsvAsync } from "../utils/csv";
 
 const UTF8_BOM = "\uFEFF";
@@ -97,8 +96,8 @@ describe("rowsToCsvAsync", () => {
       amount: String(i * 100),
     }));
     const sync = rowsToCsv(rows);
-    const async_ = await rowsToCsvAsync(rows);
-    expect(async_).toBe(sync);
+    const asyncResult = await rowsToCsvAsync(rows);
+    expect(asyncResult).toBe(sync);
   });
 
   it("handles large datasets without error", async () => {
@@ -108,7 +107,6 @@ describe("rowsToCsvAsync", () => {
     }));
     const csv = await rowsToCsvAsync(rows, undefined, 200);
     const lines = csv.split("\n").filter(Boolean);
-    // header + 2000 data rows
     expect(lines.length).toBe(2001);
   });
 
