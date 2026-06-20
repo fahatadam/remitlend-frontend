@@ -2,12 +2,23 @@
 
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import Link from "next/link";
+import * as Sentry from "@sentry/nextjs";
+import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { RefreshCcw, Siren, TriangleAlert } from "lucide-react";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
   scope?: string;
   variant?: "page" | "section";
+}
+
+/**
+ * Internal props extend the public API with an onReset callback
+ * used by QueryErrorBoundary to clear React Query's error cache on retry.
+ */
+interface ErrorBoundaryInternalProps extends ErrorBoundaryProps {
+  /** Called after the boundary clears its own state — clears React Query error cache. */
+  onReset?: () => void;
 }
 
 interface ErrorBoundaryState {
@@ -110,8 +121,8 @@ export function ErrorFallback({
  * Must be a class component — React does not yet support error boundaries
  * as functional components.
  */
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
+export class ErrorBoundary extends Component<ErrorBoundaryInternalProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryInternalProps) {
     super(props);
     this.state = { hasError: false, error: null };
   }
@@ -122,9 +133,18 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+    try {
+      Sentry.captureException(error, {
+        extra: { scope: this.props.scope, componentStack: errorInfo.componentStack },
+      });
+    } catch {
+      // Sentry unavailable in this environment
+    }
   }
 
   handleReset = (): void => {
+    // First clear React Query's error cache (if integrated via QueryErrorBoundary)
+    this.props.onReset?.();
     this.setState({ hasError: false, error: null });
   };
 
@@ -142,4 +162,24 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
     return this.props.children;
   }
+}
+
+/**
+ * QueryErrorBoundary composes React Query's QueryErrorResetBoundary around the
+ * class-based ErrorBoundary. When the user clicks "Try Again" it:
+ *   1. Clears React Query's error cache so queries re-fetch instead of returning cached errors
+ *   2. Resets the boundary's own render state
+ *
+ * Use this instead of bare <ErrorBoundary> wherever React Query data is fetched.
+ */
+export function QueryErrorBoundary({ children, scope, variant }: ErrorBoundaryProps) {
+  return (
+    <QueryErrorResetBoundary>
+      {({ reset }) => (
+        <ErrorBoundary scope={scope} variant={variant} onReset={reset}>
+          {children}
+        </ErrorBoundary>
+      )}
+    </QueryErrorResetBoundary>
+  );
 }

@@ -1,13 +1,28 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+// framer-motion is loaded on demand — LevelUpModal only mounts when a level-up event fires.
+import dynamic from "next/dynamic";
 import { X, Crown, Sparkles, Gift } from "lucide-react";
 import { useGamificationStore } from "@/app/stores/useGamificationStore";
 import { useUIStore } from "@/app/stores/useUIStore";
 import { useSoundEffect } from "@/app/utils/soundManager";
 import { Button } from "../ui/Button";
 import { useModalFocusTrap } from "../../hooks/useModalFocusTrap";
+
+const MotionDiv = dynamic(() => import("framer-motion").then((mod) => mod.motion.div), {
+  ssr: false,
+});
+const MotionH2 = dynamic(() => import("framer-motion").then((mod) => mod.motion.h2), {
+  ssr: false,
+});
+const MotionP = dynamic(() => import("framer-motion").then((mod) => mod.motion.p), { ssr: false });
+const MotionLi = dynamic(() => import("framer-motion").then((mod) => mod.motion.li), {
+  ssr: false,
+});
+const AnimatePresence = dynamic(() => import("framer-motion").then((mod) => mod.AnimatePresence), {
+  ssr: false,
+});
 
 export function LevelUpModal() {
   const showModal = useGamificationStore((state) => state.showLevelUpModal);
@@ -48,7 +63,7 @@ export function LevelUpModal() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
-          <motion.div
+          <MotionDiv
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -57,7 +72,7 @@ export function LevelUpModal() {
           />
 
           {/* Modal */}
-          <motion.div
+          <MotionDiv
             ref={modalRef}
             initial={animationsEnabled ? { scale: 0.5, opacity: 0, y: 50 } : { opacity: 0 }}
             animate={animationsEnabled ? { scale: 1, opacity: 1, y: 0 } : { opacity: 1 }}
@@ -72,7 +87,7 @@ export function LevelUpModal() {
             {/* Animated background sparkles */}
             {animationsEnabled && (
               <>
-                <motion.div
+                <MotionDiv
                   animate={{
                     scale: [1, 1.2, 1],
                     rotate: [0, 180, 360],
@@ -85,8 +100,8 @@ export function LevelUpModal() {
                   className="absolute top-10 right-10 text-yellow-400 opacity-30"
                 >
                   <Sparkles size={40} />
-                </motion.div>
-                <motion.div
+                </MotionDiv>
+                <MotionDiv
                   animate={{
                     scale: [1, 1.3, 1],
                     rotate: [360, 180, 0],
@@ -99,7 +114,7 @@ export function LevelUpModal() {
                   className="absolute bottom-10 left-10 text-purple-400 opacity-20"
                 >
                   <Sparkles size={30} />
-                </motion.div>
+                </MotionDiv>
               </>
             )}
 
@@ -116,17 +131,17 @@ export function LevelUpModal() {
             {/* Content */}
             <div className="relative p-8 text-center">
               {/* Crown icon with animation */}
-              <motion.div
+              <MotionDiv
                 initial={animationsEnabled ? { scale: 0, rotate: -180 } : {}}
                 animate={animationsEnabled ? { scale: 1, rotate: 0 } : {}}
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
                 className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg"
               >
                 <Crown size={48} className="text-white" />
-              </motion.div>
+              </MotionDiv>
 
               {/* Level up text */}
-              <motion.h2
+              <MotionH2
                 id="level-up-modal-title"
                 initial={animationsEnabled ? { opacity: 0, y: 20 } : {}}
                 animate={animationsEnabled ? { opacity: 1, y: 0 } : {}}
@@ -134,9 +149,9 @@ export function LevelUpModal() {
                 className="mb-2 text-3xl font-bold text-purple-900 dark:text-purple-100"
               >
                 Level Up!
-              </motion.h2>
+              </MotionH2>
 
-              <motion.p
+              <MotionP
                 initial={animationsEnabled ? { opacity: 0, y: 20 } : {}}
                 animate={animationsEnabled ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.4 }}
@@ -146,20 +161,20 @@ export function LevelUpModal() {
                 <span className="font-bold text-purple-900 dark:text-purple-100">
                   {pendingLevelUp.title}
                 </span>
-              </motion.p>
+              </MotionP>
 
               {/* Level badge */}
-              <motion.div
+              <MotionDiv
                 initial={animationsEnabled ? { scale: 0 } : {}}
                 animate={animationsEnabled ? { scale: 1 } : {}}
                 transition={{ delay: 0.5, type: "spring" }}
                 className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full bg-purple-600 px-6 py-3 text-white shadow-lg"
               >
                 <span className="text-2xl font-bold">Level {pendingLevelUp.level}</span>
-              </motion.div>
+              </MotionDiv>
 
               {/* Rewards */}
-              <motion.div
+              <MotionDiv
                 initial={animationsEnabled ? { opacity: 0, y: 20 } : {}}
                 animate={animationsEnabled ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.6 }}
@@ -171,7 +186,7 @@ export function LevelUpModal() {
                 </div>
                 <ul className="space-y-2 text-sm text-purple-700 dark:text-purple-300">
                   {pendingLevelUp.rewards.map((reward, index) => (
-                    <motion.li
+                    <MotionLi
                       key={index}
                       initial={animationsEnabled ? { opacity: 0, x: -20 } : {}}
                       animate={animationsEnabled ? { opacity: 1, x: 0 } : {}}
@@ -180,13 +195,13 @@ export function LevelUpModal() {
                     >
                       <span className="text-green-600 dark:text-green-400">✓</span>
                       {reward}
-                    </motion.li>
+                    </MotionLi>
                   ))}
                 </ul>
-              </motion.div>
+              </MotionDiv>
 
               {/* Continue button */}
-              <motion.div
+              <MotionDiv
                 initial={animationsEnabled ? { opacity: 0, y: 20 } : {}}
                 animate={animationsEnabled ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.9 }}
@@ -197,9 +212,9 @@ export function LevelUpModal() {
                 >
                   Continue Your Journey
                 </Button>
-              </motion.div>
+              </MotionDiv>
             </div>
-          </motion.div>
+          </MotionDiv>
         </div>
       )}
     </AnimatePresence>

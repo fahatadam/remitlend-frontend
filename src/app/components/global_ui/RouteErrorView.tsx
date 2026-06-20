@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { ErrorFallback } from "./ErrorBoundary";
 
 interface RouteErrorViewProps {
@@ -12,6 +13,11 @@ interface RouteErrorViewProps {
 export function RouteErrorView({ error, reset, scope }: RouteErrorViewProps) {
   useEffect(() => {
     console.error(`Route error in ${scope}:`, error);
+    try {
+      Sentry.captureException(error, { extra: { scope } });
+    } catch {
+      // Sentry unavailable in this environment
+    }
   }, [error, scope]);
 
   return <ErrorFallback error={error} onRetry={reset} scope={scope} variant="page" />;

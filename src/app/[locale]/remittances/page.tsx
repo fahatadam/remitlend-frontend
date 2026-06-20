@@ -21,11 +21,12 @@ import {
 } from "../../stores/useWalletStore";
 import { useRemittancesPage, type Remittance } from "../../hooks/useApi";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
-import { ErrorBoundary } from "../../components/global_ui/ErrorBoundary";
-import { Spinner } from "../../components/global_ui/Spinner";
+import { QueryErrorBoundary } from "../../components/global_ui/ErrorBoundary";
+import { QueryError } from "../../components/ui/QueryError";
+import { RemittancesSkeleton } from "../../components/skeletons/RemittancesSkeleton";
 import { PaginationControls } from "../../components/ui/PaginationControls";
-import Link from "next/link";
 import { EmptyState } from "../../components/ui/EmptyState";
+import Link from "next/link";
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
@@ -103,6 +104,7 @@ export default function RemittancesPage() {
     data: remittancesPage,
     isLoading,
     isError,
+    refetch,
   } = useRemittancesPage(
     {
       limit: PAGE_SIZE,
@@ -172,7 +174,7 @@ export default function RemittancesPage() {
         </Link>
       </header>
 
-      <ErrorBoundary scope="remittance stats" variant="section">
+      <QueryErrorBoundary scope="remittance stats" variant="section">
         <section
           aria-label="Summary Statistics"
           className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
@@ -218,7 +220,7 @@ export default function RemittancesPage() {
             </article>
           ))}
         </section>
-      </ErrorBoundary>
+      </QueryErrorBoundary>
 
       <Card>
         <CardHeader>
@@ -262,10 +264,14 @@ export default function RemittancesPage() {
           {/* Date + Amount range */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block">
+              <label
+                htmlFor="remittance-filter-from-date"
+                className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block"
+              >
                 From Date
               </label>
               <input
+                id="remittance-filter-from-date"
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
@@ -273,10 +279,14 @@ export default function RemittancesPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block">
+              <label
+                htmlFor="remittance-filter-to-date"
+                className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block"
+              >
                 To Date
               </label>
               <input
+                id="remittance-filter-to-date"
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
@@ -284,10 +294,14 @@ export default function RemittancesPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block">
+              <label
+                htmlFor="remittance-filter-min-amount"
+                className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block"
+              >
                 Min Amount
               </label>
               <input
+                id="remittance-filter-min-amount"
                 type="number"
                 placeholder="0.00"
                 value={minAmount}
@@ -296,10 +310,14 @@ export default function RemittancesPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block">
+              <label
+                htmlFor="remittance-filter-max-amount"
+                className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1 block"
+              >
                 Max Amount
               </label>
               <input
+                id="remittance-filter-max-amount"
                 type="number"
                 placeholder="0.00"
                 value={maxAmount}
@@ -311,18 +329,10 @@ export default function RemittancesPage() {
         </CardContent>
       </Card>
 
-      <ErrorBoundary scope="remittances table" variant="section">
+      <QueryErrorBoundary scope="remittances table" variant="section">
         <section aria-label="Remittance history">
           {isLoading ? (
-            <div className="flex justify-center py-20">
-              <Spinner type="spin" size={32} />
-            </div>
-          ) : isError ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center dark:border-red-900/50 dark:bg-red-950/20">
-              <p className="text-sm font-medium text-red-700 dark:text-red-400">
-                Failed to load remittances. Please try again.
-              </p>
-            </div>
+            <RemittancesSkeleton />
           ) : remittances.length === 0 ? (
             <EmptyState
               icon={SendHorizontal}
@@ -407,7 +417,7 @@ export default function RemittancesPage() {
             </div>
           )}
         </section>
-      </ErrorBoundary>
+      </QueryErrorBoundary>
 
       {!isLoading && !isError && remittances.length > 0 && (
         <PaginationControls

@@ -1,8 +1,20 @@
 "use client";
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import type { TokenBalance, WalletNetwork, WalletStatus } from "../../stores/useWalletStore";
+import type {
+  TokenBalance,
+  WalletErrorKind,
+  WalletNetwork,
+  WalletStatus,
+} from "../../stores/useWalletStore";
 import { useWalletStore } from "../../stores/useWalletStore";
+import { useUserStore } from "../../stores/useUserStore";
+import { useQueryClient } from "@tanstack/react-query";
+
+/** The Stellar network the app is configured to operate on. */
+export const APP_TARGET_NETWORK = (
+  process.env.NEXT_PUBLIC_STELLAR_NETWORK ?? "TESTNET"
+).toUpperCase();
 
 type FreighterApi = typeof import("@stellar/freighter-api");
 
@@ -26,6 +38,7 @@ interface WalletProviderContextValue {
   refreshWallet: () => Promise<void>;
   isFreighterAvailable: boolean;
   signTransaction: (unsignedTxXdr: string) => Promise<string>;
+  appTargetNetwork: string;
 }
 
 interface WalletProviderProps {
@@ -76,6 +89,43 @@ function normalizeWalletError(error: unknown): string {
   return "Unable to complete the wallet action.";
 }
 
+/**
+ * Classify a raw Freighter error into a structured kind so the UI can render
+ * distinct, actionable messages for each failure mode.
+ */
+function classifyWalletError(error: unknown): { message: string; kind: WalletErrorKind } {
+  const message = normalizeWalletError(error);
+  const lower = message.toLowerCase();
+
+  if (lower.includes("not installed") || lower.includes("unavailable")) {
+    return {
+      message: "Freighter is not installed. Install it from freighter.app and refresh.",
+      kind: "not_installed",
+    };
+  }
+
+  if (
+    lower.includes("user declined") ||
+    lower.includes("user rejected") ||
+    lower.includes("rejected") ||
+    lower.includes("denied")
+  ) {
+    return {
+      message: "Connection request was rejected. Approve the connection in Freighter to continue.",
+      kind: "user_rejected",
+    };
+  }
+
+  if (lower.includes("locked") || lower.includes("password")) {
+    return {
+      message: "Freighter is locked. Unlock your wallet and try again.",
+      kind: "locked",
+    };
+  }
+
+  return { message, kind: "generic" };
+}
+
 function mapWalletNetwork(networkName: string | undefined): WalletNetwork {
   const normalized = (networkName ?? "UNKNOWN").toUpperCase();
 
@@ -118,6 +168,9 @@ export function WalletProvider({ children }: WalletProviderProps) {
   const setStatus = useWalletStore((state) => state.setStatus);
   const setError = useWalletStore((state) => state.setError);
   const setLoadingBalances = useWalletStore((state) => state.setLoadingBalances);
+  const setNetworkMismatch = useWalletStore((state) => state.setNetworkMismatch);
+  const clearUser = useUserStore((state) => state.clearUser);
+  const queryClient = useQueryClient();
   const [isFreighterAvailable, setIsFreighterAvailable] = useState(false);
   const syncRef = useRef<Promise<void> | null>(null);
 
@@ -189,16 +242,26 @@ export function WalletProvider({ children }: WalletProviderProps) {
       }
 
       const walletNetwork = mapWalletNetwork(networkResult.network);
-      const nextStatus: WalletStatus = walletNetwork.isSupported ? "connected" : "error";
+      const isMismatch = walletNetwork.isSupported && walletNetwork.name !== APP_TARGET_NETWORK;
+      const nextStatus: WalletStatus =
+        walletNetwork.isSupported && !isMismatch ? "connected" : "error";
 
       setConnected(addressResult.address, walletNetwork);
       setNetwork(walletNetwork);
       setStatus(nextStatus);
+      setNetworkMismatch(isMismatch);
 
       if (!walletNetwork.isSupported) {
         setError(
           `Unsupported wallet network: ${walletNetwork.name}. Switch to PUBLIC, TESTNET, FUTURENET, or STANDALONE.`,
           "error",
+          "generic",
+        );
+      } else if (isMismatch) {
+        setError(
+          `Network mismatch: Freighter is on ${walletNetwork.name} but this app targets ${APP_TARGET_NETWORK}. Switch networks in Freighter to continue.`,
+          "error",
+          "network_mismatch",
         );
       } else {
         setError(null, "connected");
@@ -213,7 +276,8 @@ export function WalletProvider({ children }: WalletProviderProps) {
       .catch((error) => {
         if (interactive) {
           disconnect();
-          setError(normalizeWalletError(error), "error");
+          const { message, kind } = classifyWalletError(error);
+          setError(message, "error", kind);
           throw error;
         }
       })
@@ -233,6 +297,8 @@ export function WalletProvider({ children }: WalletProviderProps) {
 
   function disconnectWallet() {
     disconnect();
+    clearUser();
+    queryClient.clear();
   }
 
   const NETWORK_PASSPHRASES: Record<string, string> = {
@@ -337,6 +403,7 @@ export function WalletProvider({ children }: WalletProviderProps) {
         refreshWallet,
         isFreighterAvailable,
         signTransaction,
+        appTargetNetwork: APP_TARGET_NETWORK,
       }}
     >
       {children}

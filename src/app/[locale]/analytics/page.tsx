@@ -1,9 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { FinancialPerformanceDashboard } from "../../components/dashboards/FinancialPerformanceDashboard";
-import { ErrorBoundary } from "../../components/global_ui/ErrorBoundary";
+import dynamic from "next/dynamic";
+import { QueryErrorBoundary } from "../../components/global_ui/ErrorBoundary";
 import { useWalletStore, selectWalletAddress } from "../../stores/useWalletStore";
+import { AnalyticsSkeleton } from "../../components/skeletons/AnalyticsSkeleton";
+
+// Dynamically imported so recharts (and all chart dependencies) are NOT included
+// in the initial analytics route JS bundle. They are fetched only when the user
+// navigates to /analytics.
+const FinancialPerformanceDashboard = dynamic(
+  () =>
+    import("../../components/dashboards/FinancialPerformanceDashboard").then(
+      (m) => m.FinancialPerformanceDashboard,
+    ),
+  { ssr: false, loading: () => <AnalyticsSkeleton /> },
+);
 
 type ViewType = "borrower" | "lender";
 
@@ -38,13 +50,13 @@ export default function AnalyticsPage() {
         ))}
       </div>
 
-      <ErrorBoundary scope="analytics dashboard" variant="section">
+      <QueryErrorBoundary scope="analytics dashboard" variant="section">
         <FinancialPerformanceDashboard
           userId={userId}
           userType={view}
           walletAddress={address ?? undefined}
         />
-      </ErrorBoundary>
+      </QueryErrorBoundary>
     </main>
   );
 }

@@ -53,6 +53,25 @@
       "showing": "Ipinapakita {start}–{end} ng {total} na mga transaksyon",
       "previous": "Nakaraang",
       "next": "Susunod"
+    },
+    "csv": {
+      "date": "Petsa",
+      "type": "Uri",
+      "amount": "Halaga",
+      "status": "Katayuan",
+      "transactionHash": "Hash ng Transaksyon",
+      "stellarExplorerLink": "Stellar Explorer Link"
+    }
+  },
+  "WalletPage": {
+    "csv": {
+      "date": "Petsa",
+      "type": "Uri",
+      "amount": "Halaga",
+      "asset": "Asset",
+      "status": "Katayuan",
+      "transactionHash": "Hash ng Transaksyon",
+      "stellarExplorerLink": "Stellar Explorer Link"
     }
   },
   "Navigation": {

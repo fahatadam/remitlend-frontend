@@ -53,6 +53,25 @@
       "showing": "Showing {start}–{end} of {total} transactions",
       "previous": "Previous",
       "next": "Next"
+    },
+    "csv": {
+      "date": "Date",
+      "type": "Type",
+      "amount": "Amount",
+      "status": "Status",
+      "transactionHash": "Transaction Hash",
+      "stellarExplorerLink": "Stellar Explorer Link"
+    }
+  },
+  "WalletPage": {
+    "csv": {
+      "date": "Date",
+      "type": "Type",
+      "amount": "Amount",
+      "asset": "Asset",
+      "status": "Status",
+      "transactionHash": "Transaction Hash",
+      "stellarExplorerLink": "Stellar Explorer Link"
     }
   },
   "Navigation": {

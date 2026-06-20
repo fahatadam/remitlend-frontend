@@ -22,6 +22,8 @@ beforeEach(() => {
     balances: [],
     isLoadingBalances: false,
     error: null,
+    errorKind: null,
+    networkMismatch: false,
     shouldAutoReconnect: false,
   });
   useUIStore.setState((state) => ({
@@ -140,6 +142,45 @@ describe("useWalletStore", () => {
     const { error, status } = useWalletStore.getState();
     expect(error).toBe("User rejected connection");
     expect(status).toBe("error");
+  });
+
+  it("setError stores the error kind", () => {
+    useWalletStore.getState().setError("Freighter is locked", "error", "locked");
+    expect(useWalletStore.getState().errorKind).toBe("locked");
+
+    useWalletStore.getState().setError("User rejected", "error", "user_rejected");
+    expect(useWalletStore.getState().errorKind).toBe("user_rejected");
+
+    useWalletStore.getState().setError("Not installed", "error", "not_installed");
+    expect(useWalletStore.getState().errorKind).toBe("not_installed");
+  });
+
+  it("setError clears errorKind when error is null", () => {
+    useWalletStore.getState().setError("some error", "error", "locked");
+    useWalletStore.getState().setError(null, "connected");
+    expect(useWalletStore.getState().errorKind).toBeNull();
+  });
+
+  it("setNetworkMismatch toggles the mismatch flag", () => {
+    expect(useWalletStore.getState().networkMismatch).toBe(false);
+    useWalletStore.getState().setNetworkMismatch(true);
+    expect(useWalletStore.getState().networkMismatch).toBe(true);
+    useWalletStore.getState().setNetworkMismatch(false);
+    expect(useWalletStore.getState().networkMismatch).toBe(false);
+  });
+
+  it("disconnect clears networkMismatch and errorKind", () => {
+    useWalletStore.getState().setConnected("G123", mockNetwork);
+    useWalletStore.getState().setNetworkMismatch(true);
+    useWalletStore.getState().setError("mismatch", "error", "network_mismatch");
+
+    useWalletStore.getState().disconnect();
+
+    const { networkMismatch, errorKind, error, address } = useWalletStore.getState();
+    expect(networkMismatch).toBe(false);
+    expect(errorKind).toBeNull();
+    expect(error).toBeNull();
+    expect(address).toBeNull();
   });
 });
 

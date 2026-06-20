@@ -30,9 +30,12 @@ import {
 } from "@/app/hooks/useApi";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
 import { Button } from "../ui/Button";
+import { QueryErrorBoundary } from "../global_ui/ErrorBoundary";
+import { QueryError } from "../ui/QueryError";
+import { EmptyState } from "../ui/EmptyState";
 import { AnalyticsSkeleton } from "../skeletons/AnalyticsSkeleton";
 import { SkeletonChart } from "../ui/Skeleton";
-import { RefreshCw, CheckCircle2, TrendingUp, DollarSign, Activity } from "lucide-react";
+import { RefreshCw, CheckCircle2, TrendingUp, DollarSign, Activity, BarChart2 } from "lucide-react";
 
 interface FinancialPerformanceDashboardProps {
   userId: string;
@@ -360,20 +363,21 @@ export function FinancialPerformanceDashboard({
           </div>
 
           {/* Credit score chart */}
-          {isLoadingScore && !useMockData ? (
-            <AnalyticsSkeleton />
-          ) : scoreError && !useMockData ? (
-            <Card className="p-8">
-              <div className="text-center">
-                <p className="text-red-600 mb-4">Error loading credit score data</p>
-                <Button onClick={() => refetchScore()}>Retry</Button>
-              </div>
-            </Card>
-          ) : (
-            <Suspense fallback={<SkeletonChart />}>
-              <CreditScoreTrendChart data={displayCreditScoreData} />
-            </Suspense>
-          )}
+          <QueryErrorBoundary scope="credit score chart" variant="section">
+            {isLoadingScore && !useMockData ? (
+              <AnalyticsSkeleton />
+            ) : !useMockData && displayCreditScoreData.length === 0 ? (
+              <EmptyState
+                icon={BarChart2}
+                title="No credit score history yet"
+                description="On-chain loan activity will populate your credit score trend once you make your first repayment."
+              />
+            ) : (
+              <Suspense fallback={<SkeletonChart />}>
+                <CreditScoreTrendChart data={displayCreditScoreData} />
+              </Suspense>
+            )}
+          </QueryErrorBoundary>
 
           {/* Score improvement actions */}
           <Card>
@@ -449,20 +453,21 @@ export function FinancialPerformanceDashboard({
           </div>
 
           {/* Yield chart */}
-          {isLoadingYield && !useMockData ? (
-            <AnalyticsSkeleton />
-          ) : yieldError && !useMockData ? (
-            <Card className="p-8">
-              <div className="text-center">
-                <p className="text-red-600 mb-4">Error loading yield data</p>
-                <Button onClick={() => refetchYield()}>Retry</Button>
-              </div>
-            </Card>
-          ) : (
-            <Suspense fallback={<SkeletonChart />}>
-              <YieldEarningsChart data={displayYieldData} />
-            </Suspense>
-          )}
+          <QueryErrorBoundary scope="yield chart" variant="section">
+            {isLoadingYield && !useMockData ? (
+              <AnalyticsSkeleton />
+            ) : !useMockData && displayYieldData.length === 0 ? (
+              <EmptyState
+                icon={BarChart2}
+                title="No yield history yet"
+                description="Yield performance will appear here after the pool records deposits, loans, and earnings."
+              />
+            ) : (
+              <Suspense fallback={<SkeletonChart />}>
+                <YieldEarningsChart data={displayYieldData} />
+              </Suspense>
+            )}
+          </QueryErrorBoundary>
 
           {/* Active loan risk tier breakdown */}
           <Suspense fallback={<SkeletonChart />}>

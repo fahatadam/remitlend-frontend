@@ -5,10 +5,12 @@ import { useLocale, useTranslations } from "next-intl";
 import { Clock, ArrowUpRight, ArrowDownLeft, ExternalLink } from "lucide-react";
 import { useWalletStore, selectIsWalletConnected } from "../../stores/useWalletStore";
 import { useLoans, useRemittances } from "../../hooks/useApi";
-import { ErrorBoundary } from "../../components/global_ui/ErrorBoundary";
+import { QueryErrorBoundary } from "../../components/global_ui/ErrorBoundary";
+import { QueryError } from "../../components/ui/QueryError";
+import { ActivitySkeleton } from "../../components/skeletons/ActivitySkeleton";
 import { StatusIndicator } from "../../components/ui/StatusIndicator";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { downloadCsv, rowsToCsv } from "../../utils/csv";
+import { downloadCsvAsync } from "../../utils/csv";
 
 type FilterType = "all" | "loan" | "remittance";
 
@@ -45,12 +47,25 @@ export default function ActivityPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [filterType, setFilterType] = useState<FilterType>("all");
 
-  const { data: loans = [], isLoading: loansLoading } = useLoans({ enabled: isConnected });
-  const { data: remittances = [], isLoading: remittancesLoading } = useRemittances({
-    enabled: isConnected,
-  });
+  const {
+    data: loans = [],
+    isLoading: loansLoading,
+    isError: loansError,
+    refetch: refetchLoans,
+  } = useLoans({ enabled: isConnected });
+  const {
+    data: remittances = [],
+    isLoading: remittancesLoading,
+    isError: remittancesError,
+    refetch: refetchRemittances,
+  } = useRemittances({ enabled: isConnected });
 
   const isLoading = loansLoading || remittancesLoading;
+  const isError = loansError || remittancesError;
+  const handleRetry = () => {
+    refetchLoans();
+    refetchRemittances();
+  };
   const isFilteredView = filterType !== "all";
 
   const allActivity = useMemo(() => {
@@ -102,7 +117,7 @@ export default function ActivityPage() {
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedActivity = allActivity.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
-  function handleExportCsv() {
+  async function handleExportCsv() {
     const today = new Date().toISOString().split("T")[0];
     const rows = allActivity.map((item) => ({
       date: formatDate(item.timestamp),
@@ -114,7 +129,14 @@ export default function ActivityPage() {
         ? `https://stellar.expert/explorer/public/tx/${item.txHash}`
         : "",
     }));
-    downloadCsv(`remitlend-activity-${today}.csv`, rowsToCsv(rows));
+    await downloadCsvAsync(`remitlend-activity-${today}.csv`, rows, [
+      { key: "date", label: t("csv.date") },
+      { key: "type", label: t("csv.type") },
+      { key: "amount", label: t("csv.amount") },
+      { key: "status", label: t("csv.status") },
+      { key: "transactionHash", label: t("csv.transactionHash") },
+      { key: "stellarExplorerLink", label: t("csv.stellarExplorerLink") },
+    ]);
   }
 
   if (!isConnected) {
@@ -146,14 +168,21 @@ export default function ActivityPage() {
         <button
           type="button"
           onClick={handleExportCsv}
-          disabled={allActivity.length === 0 || isLoading}
+          disabled={allActivity.length === 0 || isLoading || isError}
+          title={
+            isError
+              ? "Cannot export — data failed to load"
+              : allActivity.length === 0
+                ? "No activity to export"
+                : undefined
+          }
           className="inline-flex items-center justify-center rounded-full border border-zinc-300 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-900"
         >
           Export CSV
         </button>
       </header>
 
-      <ErrorBoundary scope="activity filters" variant="section">
+      <QueryErrorBoundary scope="activity filters" variant="section">
         <div className="flex flex-wrap gap-3 pb-4 border-b border-zinc-200 dark:border-zinc-800">
           {(["all", "loan", "remittance"] as const).map((filter) => (
             <button
@@ -173,19 +202,12 @@ export default function ActivityPage() {
             </button>
           ))}
         </div>
-      </ErrorBoundary>
+      </QueryErrorBoundary>
 
-      <ErrorBoundary scope="activity list" variant="section">
+      <QueryErrorBoundary scope="activity list" variant="section">
         <div className="rounded-xl border border-zinc-200 bg-white overflow-hidden dark:border-zinc-800 dark:bg-zinc-950">
           {isLoading ? (
-            <div className="space-y-4 p-6">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-16 bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-900 dark:to-zinc-800 rounded animate-pulse"
-                />
-              ))}
-            </div>
+            <ActivitySkeleton />
           ) : paginatedActivity.length === 0 ? (
             <div className="p-6">
               <EmptyState
@@ -275,10 +297,10 @@ export default function ActivityPage() {
             </div>
           )}
         </div>
-      </ErrorBoundary>
+      </QueryErrorBoundary>
 
       {totalPages > 1 && (
-        <ErrorBoundary scope="pagination" variant="section">
+        <QueryErrorBoundary scope="pagination" variant="section">
           <div className="flex items-center justify-between py-4">
             <div className="text-sm text-zinc-500 dark:text-zinc-400">
               {t("pagination.showing", {
@@ -323,7 +345,7 @@ export default function ActivityPage() {
               </button>
             </div>
           </div>
-        </ErrorBoundary>
+        </QueryErrorBoundary>
       )}
     </main>
   );

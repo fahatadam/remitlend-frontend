@@ -53,6 +53,25 @@
       "showing": "Mostrando {start}–{end} de {total} transacciones",
       "previous": "Anterior",
       "next": "Siguiente"
+    },
+    "csv": {
+      "date": "Fecha",
+      "type": "Tipo",
+      "amount": "Monto",
+      "status": "Estado",
+      "transactionHash": "Hash de transacción",
+      "stellarExplorerLink": "Enlace Stellar Explorer"
+    }
+  },
+  "WalletPage": {
+    "csv": {
+      "date": "Fecha",
+      "type": "Tipo",
+      "amount": "Monto",
+      "asset": "Activo",
+      "status": "Estado",
+      "transactionHash": "Hash de transacción",
+      "stellarExplorerLink": "Enlace Stellar Explorer"
     }
   },
   "Navigation": {

@@ -2,6 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useUserStore } from "../stores/useUserStore";
+import {
+  SseEventDedupe,
+  computeSseBackoffMs,
+  exceededReconnectCap,
+  isAuthExpiredStatus,
+} from "./sseInternals";
 
 export type SSEStatus = "connecting" | "connected" | "disconnected";
 export type RealtimeStatus = SSEStatus | "polling";
@@ -17,11 +23,32 @@ interface UseSSEOptions<T> {
   onError?: (error: Error) => void;
   /** Invoked while the hook is in fallback polling mode. */
   onFallbackPoll?: () => void | Promise<void>;
+  /**
+   * Optional: extract a stable id from a payload to suppress duplicate
+   * deliveries across reconnects. Return undefined to opt the event out
+   * of deduplication.
+   */
+  getEventId?: (data: T) => string | undefined;
 }
 
 /**
- * Generic SSE hook with exponential backoff reconnection using fetch + ReadableStream.
- * Supports custom Authorization header which the native EventSource API does not.
+ * Generic SSE hook with exponential backoff reconnection using fetch +
+ * ReadableStream. Supports a custom Authorization header that the native
+ * EventSource API does not.
+ *
+ * Issue #5 hardening:
+ *   * Exponential backoff with full jitter and a hard reconnect cap
+ *     (`SSE_MAX_ATTEMPTS`); once the cap is reached we stop spinning and
+ *     stay in fallback polling mode until the consumer triggers a reset.
+ *   * 401 / 403 responses close the stream and force a fresh token read
+ *     before reconnecting, instead of burning through reconnect attempts
+ *     on an expired token.
+ *   * `online` and `visibilitychange` listeners trigger an immediate
+ *     reconnect attempt when the network or tab comes back.
+ *   * Optional `getEventId` dedupe so reconnect replay does not double-
+ *     deliver events to the UI.
+ *   * Strict teardown on unmount and route change (existing behaviour,
+ *     preserved).
  */
 export function useSSE<T = unknown>({
   url,
@@ -29,13 +56,15 @@ export function useSSE<T = unknown>({
   onOpen,
   onError,
   onFallbackPoll,
+  getEventId,
 }: UseSSEOptions<T>): RealtimeStatus {
   const [status, setStatus] = useState<RealtimeStatus>("connecting");
   const token = useUserStore((s) => s.authToken);
-  const retryDelay = useRef(1_000);
+  const attemptRef = useRef(0);
   const abortControllerRef = useRef<AbortController | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const dedupeRef = useRef<SseEventDedupe>(new SseEventDedupe());
 
   const onMessageRef = useRef(onMessage);
   onMessageRef.current = onMessage;
@@ -45,6 +74,8 @@ export function useSSE<T = unknown>({
   onErrorRef.current = onError;
   const onFallbackPollRef = useRef(onFallbackPoll);
   onFallbackPollRef.current = onFallbackPoll;
+  const getEventIdRef = useRef(getEventId);
+  getEventIdRef.current = getEventId;
 
   useEffect(() => {
     if (!url) {
@@ -73,10 +104,23 @@ export function useSSE<T = unknown>({
       }, 10_000);
     };
 
+    const scheduleReconnect = () => {
+      if (cancelled) return;
+      if (exceededReconnectCap(attemptRef.current)) {
+        // Give up retrying and stay in fallback polling mode. A future
+        // `online` / `visibilitychange` event will reset the attempt
+        // counter and try again.
+        startPolling();
+        return;
+      }
+      const delay = computeSseBackoffMs(attemptRef.current);
+      attemptRef.current += 1;
+      timeoutRef.current = setTimeout(connect, delay);
+    };
+
     async function connect() {
       if (cancelled) return;
 
-      // Clean up previous connection if any
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -90,8 +134,13 @@ export function useSSE<T = unknown>({
           Accept: "text/event-stream",
         };
 
-        if (token) {
-          headers["Authorization"] = `Bearer ${token}`;
+        // Read the current auth token at connect time, not capture-time.
+        // After a 401 we close and reconnect, which re-reads this and
+        // picks up whatever the store has at that moment (the refresh
+        // flow is expected to have rotated the token by then).
+        const currentToken = useUserStore.getState().authToken;
+        if (currentToken) {
+          headers["Authorization"] = `Bearer ${currentToken}`;
         }
 
         const response = await fetch(url as string, {
@@ -100,6 +149,11 @@ export function useSSE<T = unknown>({
         });
 
         if (!response.ok) {
+          if (isAuthExpiredStatus(response.status)) {
+            // Don't burn reconnect attempts on an expired token.
+            attemptRef.current = 0;
+            throw new Error(`SSE auth expired: ${response.status}`);
+          }
           throw new Error(`SSE connection failed: ${response.status} ${response.statusText}`);
         }
 
@@ -109,7 +163,7 @@ export function useSSE<T = unknown>({
 
         stopPolling();
         setStatus("connected");
-        retryDelay.current = 1_000;
+        attemptRef.current = 0;
         onOpenRef.current?.();
 
         const reader = response.body.getReader();
@@ -131,6 +185,12 @@ export function useSSE<T = unknown>({
                 const dataStr = line.slice(6);
                 try {
                   const data = JSON.parse(dataStr) as T;
+                  const id = getEventIdRef.current?.(data);
+                  if (!dedupeRef.current.markSeen(id)) {
+                    // Already delivered across an earlier connection;
+                    // suppress the duplicate.
+                    continue;
+                  }
                   onMessageRef.current(data);
                 } catch (e) {
                   console.error("Failed to parse SSE data", e);
@@ -146,16 +206,35 @@ export function useSSE<T = unknown>({
 
         startPolling();
         onErrorRef.current?.(err instanceof Error ? err : new Error(String(err)));
-
-        if (!cancelled) {
-          const delay = Math.min(retryDelay.current, 5_000);
-          retryDelay.current = Math.min(delay * 2, 30_000);
-          timeoutRef.current = setTimeout(connect, delay);
-        }
+        scheduleReconnect();
       }
     }
 
-    connect();
+    // Reset attempts and reconnect immediately when the network or tab
+    // comes back online.
+    const handleResume = () => {
+      if (cancelled) return;
+      attemptRef.current = 0;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      void connect();
+    };
+    const handleVisibility = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        handleResume();
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", handleResume);
+      if (typeof document !== "undefined") {
+        document.addEventListener("visibilitychange", handleVisibility);
+      }
+    }
+
+    void connect();
 
     return () => {
       cancelled = true;
@@ -166,6 +245,13 @@ export function useSSE<T = unknown>({
         clearTimeout(timeoutRef.current);
       }
       stopPolling();
+      if (typeof window !== "undefined") {
+        window.removeEventListener("online", handleResume);
+        if (typeof document !== "undefined") {
+          document.removeEventListener("visibilitychange", handleVisibility);
+        }
+      }
+      dedupeRef.current.clear();
     };
   }, [url, token]);
 

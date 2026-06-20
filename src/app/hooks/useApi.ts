@@ -404,6 +404,7 @@ export function useLoans(options?: Omit<UseQueryOptions<Loan[]>, "queryKey" | "q
   return useQuery<Loan[]>({
     queryKey: queryKeys.loans.all(),
     queryFn: () => apiFetch<Loan[]>("/loans"),
+    throwOnError: true,
     ...options,
   });
 }
@@ -552,6 +553,7 @@ export function useRemittances(
   return useQuery<Remittance[]>({
     queryKey: queryKeys.remittances.all(),
     queryFn: () => fetchAllRemittances(),
+    throwOnError: true,
     ...options,
   });
 }
@@ -565,6 +567,7 @@ export function useRemittancesPage(params: CursorListParams = {}, options?: { en
     }),
     queryFn: () => fetchRemittancesPage(params),
     placeholderData: keepPreviousData,
+    throwOnError: true,
     ...options,
   });
 }
@@ -657,6 +660,7 @@ export function useCreditScoreHistory(
     queryKey: ["creditScoreHistory", userId],
     queryFn: () => apiFetch<CreditScoreHistory[]>(`/score/${userId}/history`),
     enabled: !!userId,
+    throwOnError: true,
     ...options,
   });
 }
@@ -790,6 +794,7 @@ export function useYieldHistory(
     queryKey: ["yieldHistory", userId],
     queryFn: () => apiFetch<YieldHistory[]>(`/yield/${userId}/history`),
     enabled: !!userId,
+    throwOnError: true,
     ...options,
   });
 }
@@ -852,6 +857,7 @@ export function useBorrowerLoansPage(
     enabled: !!borrowerAddress,
     staleTime: 30_000,
     placeholderData: keepPreviousData,
+    throwOnError: true,
     ...options,
   });
 }
@@ -863,6 +869,7 @@ export function usePoolStats(options?: Omit<UseQueryOptions<PoolStats>, "queryKe
       const response = await apiFetch<PoolApiResponse<PoolStats>>("/pool/stats");
       return response.data;
     },
+    throwOnError: true,
     ...options,
   });
 }
@@ -891,6 +898,7 @@ export function useDepositorPortfolio(
       return response.data;
     },
     enabled: !!address,
+    throwOnError: true,
     ...options,
   });
 }

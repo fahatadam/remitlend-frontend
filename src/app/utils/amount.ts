@@ -46,10 +46,15 @@ export function toStroops(value: string, decimals = STROOP_DECIMALS): bigint | n
   }
 
   const [whole = "0", fraction = ""] = value.split(".");
+  // Issue #3: scale by 10**decimals so non 7-decimal assets convert
+  // correctly. The previous fixed STROOP_SCALE constant assumed every
+  // asset used 7 decimals like XLM, which silently inflated 2- and
+  // 6-decimal amounts by orders of magnitude.
+  const scale = BigInt(10) ** BigInt(decimals);
   const normalizedFraction = fraction.padEnd(decimals, "0");
 
   try {
-    return BigInt(whole || "0") * BigInt(STROOP_SCALE) + BigInt(normalizedFraction || "0");
+    return BigInt(whole || "0") * scale + BigInt(normalizedFraction || "0");
   } catch {
     return null;
   }
