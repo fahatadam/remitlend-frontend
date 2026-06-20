@@ -112,7 +112,7 @@ const defaultModals = Object.fromEntries(ALL_MODALS.map((id) => [id, { isOpen: f
 // ─── Initial state ────────────────────────────────────────────────────────────
 
 const getInitialReducedMotion = () => {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
   return false;
@@ -223,7 +223,7 @@ export const useUIStore = create<UIStore>()(
   ),
 );
 
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
   const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   mediaQuery.addEventListener("change", (e) => {
     useUIStore.getState().setReducedMotion(e.matches);
