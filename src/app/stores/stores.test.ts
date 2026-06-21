@@ -252,15 +252,14 @@ describe("useThemeStore", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 
-  it("toggles between light and dark themes", () => {
+  it("toggles between themes in a cycle (light -> dark -> system)", () => {
     useThemeStore.setState({ theme: "dark", hydrated: true });
     document.documentElement.classList.add("dark");
 
     useThemeStore.getState().toggleTheme();
 
     const { theme } = useThemeStore.getState();
-    expect(theme).toBe("light");
-    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("light");
-    expect(document.documentElement.classList.contains("dark")).toBe(false);
+    expect(theme).toBe("system");
+    expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("system");
   });
 });
